@@ -1,0 +1,9 @@
+
+{
+  "name": "GlowSalon Pro",
+  "description": "A comprehensive salon management and booking system with AI-powered style consultations, staff scheduling, and commission tracking.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
