@@ -1,5 +1,5 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -13,17 +13,13 @@ import {
   Divider,
   useTheme,
   alpha,
-  Fade,
-  Tooltip,
-  Rating
+  CircularProgress,
+  Rating,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import {
   Clock,
-  Calendar,
   AlertCircle,
-  CheckCircle2,
-  Play,
   ClipboardList,
   Coins,
   TrendingUp,
@@ -31,339 +27,446 @@ import {
   Star,
   ChevronRight,
   Zap,
-  Flame,
+  BarChart3,
   MessageSquare,
   Sparkles,
   Repeat,
-  Target,
-  BarChart3,
-  ThumbsUp
+  ArrowLeft,
 } from 'lucide-react';
-import { MOCK_APPOINTMENTS, SERVICES, STAFF } from './constants';
-import { Appointment } from './types';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/state/store';
+import { useStaff } from '@/state/staff';
+import { getSalonAppointmentsApi } from '@/services/api/appointmentService';
+import { getStaffStatsApi, type StaffStats } from '@/services/api/staffService';
+import { ROUTES } from '@/routes/routeConfig';
+
+interface PortalAppointment {
+  id: string;
+  customerName: string;
+  serviceId: string;
+  serviceName: string;
+  staffId: string;
+  date: string;
+  time: string;
+  status: string;
+  notes?: string;
+  allergies?: string;
+  duration?: number;
+}
+
+const formatTime = (timeStr: string): string => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  if (h === 0 && m === 0) return '12:00 AM';
+  if (h === 12) return `12:${String(m).padStart(2, '0')} PM`;
+  if (h > 12) return `${h - 12}:${String(m).padStart(2, '0')} PM`;
+  return `${h}:${String(m).padStart(2, '0')} AM`;
+};
 
 const StaffPortal: React.FC = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
-  
-  // Simulation: Logged in as Elena (st1)
-  const currentArtisan = STAFF[0];
-  const [appointments, setAppointments] = useState<Appointment[]>(
-    MOCK_APPOINTMENTS.map(a => ({
-      ...a,
-      notes: a.id === 'a1' ? 'Prefers low-volume music. Uses specific organic balm.' : 'First time visit. Wants bold change.',
-      allergies: a.id === 'a1' ? 'Allergic to synthetic Lavender extract.' : 'None reported.'
-    })).filter(a => a.staffId === 'st1')
-  );
+  const { staffId } = useParams<{ staffId: string }>();
+  const navigate = useNavigate();
+  const salon = useSelector((state: RootState) => state.salon.salon);
+  const { currentStaff, itemLoading, handleGetStaffById } = useStaff();
 
-  const [activeRitualId, setActiveRitualId] = useState<string | null>('a1');
-  const [timeLeft, setTimeLeft] = useState(24); // mins remaining
+  const [appointments, setAppointments] = useState<PortalAppointment[]>([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+  const [staffStats, setStaffStats] = useState<StaffStats | null>(null);
+  const [staffStatsLoading, setStaffStatsLoading] = useState(false);
+  const [activeAppointmentId, setActiveAppointmentId] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
 
-  const activeRitual = appointments.find(a => a.id === activeRitualId);
-  const activeService = SERVICES.find(s => s.id === activeRitual?.serviceId);
+  const salonId = (currentStaff as any)?.salonId ?? (currentStaff as any)?.salon_id ?? salon?.id ?? null;
 
-  const stats = [
-    { label: 'Today Tips', value: 'LKR 4,200', icon: <Coins size={18} />, color: '#10B981' },
-    { label: 'Comm. Earned', value: 'LKR 8,450', icon: <TrendingUp size={18} />, color: '#6366F1' },
-    { label: 'Ritual Goal', value: '4/6', icon: <Zap size={18} />, color: '#B59410' },
-  ];
+  useEffect(() => {
+    if (staffId) {
+      handleGetStaffById(staffId);
+    }
+  }, [staffId, handleGetStaffById]);
 
-  // Performance Transparency Metrics
-  const performanceMetrics = {
-    rebookingRate: 78,
-    onTimeRate: 94,
-    cancelResponsibility: 2, // percentage of cancels due to staff
-    ratingBreakdown: [
-      { stars: 5, count: 124 },
-      { stars: 4, count: 12 },
-      { stars: 3, count: 2 },
-    ]
-  };
+  useEffect(() => {
+    if (!staffId) {
+      setStaffStats(null);
+      return;
+    }
+    let cancelled = false;
+    setStaffStatsLoading(true);
+    getStaffStatsApi(staffId)
+      .then((res) => {
+        if (cancelled) return;
+        const data = res.data?.data ?? res.data ?? null;
+        setStaffStats(data);
+      })
+      .catch(() => {
+        if (!cancelled) setStaffStats(null);
+      })
+      .finally(() => {
+        if (!cancelled) setStaffStatsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [staffId]);
+
+  useEffect(() => {
+    if (!salonId || !staffId) {
+      setAppointments([]);
+      return;
+    }
+    let cancelled = false;
+    setAppointmentsLoading(true);
+    const today = new Date().toISOString().slice(0, 10);
+    getSalonAppointmentsApi(salonId, today)
+      .then((res) => {
+        if (cancelled) return;
+        const data = res.data?.data ?? res.data ?? [];
+        const list = Array.isArray(data) ? data : [];
+        const mapped: PortalAppointment[] = list
+          .filter((b: any) => (b.staff_id || '') === staffId)
+          .map((b: any) => {
+            const customerName = (b as any).customer_name
+              || (b.user ? `${(b.user.first_name || '').trim()} ${(b.user.last_name || '').trim()}`.trim() : '')
+              || 'Customer';
+            let timeStr = '';
+            if (b.start_time) {
+              if (typeof b.start_time === 'string' && b.start_time.includes('T')) {
+                const t = new Date(b.start_time);
+                timeStr = `${String(t.getUTCHours()).padStart(2, '0')}:${String(t.getUTCMinutes()).padStart(2, '0')}`;
+              } else {
+                timeStr = String(b.start_time).slice(0, 5);
+              }
+            }
+            const dateStr = b.booking_date ? (typeof b.booking_date === 'string' ? b.booking_date.slice(0, 10) : new Date(b.booking_date).toISOString().slice(0, 10)) : today;
+            const serviceName = b.booking_services?.[0]?.service?.name || 'Service';
+            const duration = b.booking_services?.[0]?.duration ?? 30;
+            let notes = '';
+            let allergies = '';
+            if (b.notes && typeof b.notes === 'string') {
+              try {
+                const parsed = JSON.parse(b.notes);
+                if (parsed?.text) notes = parsed.text;
+              } catch {
+                notes = b.notes;
+              }
+            }
+            return {
+              id: b.id,
+              customerName,
+              serviceId: b.service_id || '',
+              serviceName,
+              staffId: b.staff_id || '',
+              date: dateStr,
+              time: timeStr,
+              status: (b.status || 'PENDING').toLowerCase(),
+              notes,
+              allergies,
+              duration,
+            };
+          })
+          .sort((a, b) => a.time.localeCompare(b.time));
+        setAppointments(mapped);
+        if (mapped.length > 0 && !activeAppointmentId) {
+          setActiveAppointmentId(mapped[0].id);
+          setTimeRemaining(mapped[0].duration ?? 30);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAppointments([]);
+      })
+      .finally(() => {
+        if (!cancelled) setAppointmentsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [salonId, staffId]);
+
+  const activeAppointment = useMemo(() => appointments.find((a) => a.id === activeAppointmentId), [appointments, activeAppointmentId]);
+
+  const commissionRate = currentStaff?.commissionRate ?? 0;
+  const commissionPercent = commissionRate > 1 ? Math.round(commissionRate) : Math.round(commissionRate * 100);
+
+  const stats = useMemo(() => {
+    const revenue = currentStaff?.monthlyRevenue ?? 0;
+    return [
+      { label: "Today's tips", value: `Rs. ${Math.round(revenue / 30)}`, icon: <Coins size={18} />, color: theme.palette.success.main },
+      { label: 'Commission earned', value: `${commissionPercent}%`, icon: <TrendingUp size={18} />, color: theme.palette.secondary.main },
+      { label: 'Appointments today', value: `${appointments.length}`, icon: <Zap size={18} />, color: theme.palette.secondary.main },
+    ];
+  }, [currentStaff, appointments.length, commissionPercent, theme.palette.success.main, theme.palette.secondary.main]);
+
+  const performanceMetrics = useMemo(() => ({
+    rebookingRate: staffStats?.rebookingRate ?? null,
+    onTimeRate: staffStats?.onTimeRate ?? null,
+    cancelRate: staffStats?.cancelRate ?? 0,
+  }), [staffStats]);
+
+  if (!staffId) {
+    return (
+      <Box sx={{ py: 8, textAlign: 'center' }}>
+        <Typography sx={{ color: 'text.secondary', fontWeight: 600, mb: 2 }}>Select a staff member to view their portal.</Typography>
+        <Button variant="contained" disableElevation startIcon={<ArrowLeft size={18} />} onClick={() => navigate(`${ROUTES.SALON_PROFILE}?tab=staff`)} sx={{ borderRadius: '100px', fontWeight: 800, bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.800' } }}>
+          Back to Staff
+        </Button>
+      </Box>
+    );
+  }
+
+  if (itemLoading && !currentStaff) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 320 }}>
+        <CircularProgress sx={{ color: theme.palette.secondary.main }} />
+      </Box>
+    );
+  }
+
+  if (!currentStaff) {
+    return (
+      <Box sx={{ py: 8, textAlign: 'center' }}>
+        <Typography sx={{ color: 'text.secondary', fontWeight: 600, mb: 2 }}>Staff member not found.</Typography>
+        <Button variant="contained" disableElevation startIcon={<ArrowLeft size={18} />} onClick={() => navigate(`${ROUTES.SALON_PROFILE}?tab=staff`)} sx={{ borderRadius: '100px', fontWeight: 800, bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.800' } }}>
+          Back to Staff
+        </Button>
+      </Box>
+    );
+  }
+
+  const staffName = currentStaff.name || 'Staff';
+  const firstName = staffName.split(' ')[0] || 'Staff';
 
   return (
-    <Box sx={{ pb: 10 }} className="animate-fadeIn">
-      {/* Header Profile Section */}
-      <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 6 }}>
-        <Avatar src={currentArtisan.avatar} sx={{ width: 80, height: 80, border: '4px solid', borderColor: 'background.paper', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }} />
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>Hello, {currentArtisan.name.split(' ')[0]} ✨</Typography>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Chip label="ON DUTY" size="small" sx={{ bgcolor: 'success.main', color: 'white', fontWeight: 900, fontSize: '10px' }} />
-            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>Shift Ends: 6:00 PM</Typography>
-            <Divider orientation="vertical" flexItem sx={{ height: 16, my: 'auto' }} />
+    <Box sx={{ pb: 10, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }} className="animate-fadeIn">
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4, minWidth: 0 }}>
+        <IconButton onClick={() => navigate(`${ROUTES.SALON_PROFILE}?tab=staff`)} sx={{ color: 'text.secondary', flexShrink: 0 }} aria-label="Back to Staff">
+          <ArrowLeft size={24} />
+        </IconButton>
+        <Avatar src={currentStaff.avatar} sx={{ width: { xs: 56, md: 80 }, height: { xs: 56, md: 80 }, border: '4px solid', borderColor: 'background.paper', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', flexShrink: 0 }} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5, fontSize: { xs: '1.25rem', md: '1.5rem' } }}>Hello, {firstName}</Typography>
+          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+            <Chip
+              label={currentStaff.status === 'active' ? 'On duty' : (currentStaff.status || 'Inactive')}
+              size="small"
+              sx={{ bgcolor: currentStaff.status === 'active' ? 'success.main' : 'text.secondary', color: currentStaff.status === 'active' ? 'success.contrastText' : 'background.paper', fontWeight: 900, fontSize: '10px' }}
+            />
             <Stack direction="row" spacing={0.5} alignItems="center">
               <Star size={14} fill={theme.palette.secondary.main} color={theme.palette.secondary.main} />
-              <Typography sx={{ fontWeight: 800, fontSize: '14px' }}>{currentArtisan.rating}</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: '14px' }}>{Number(currentStaff.rating) || 0}</Typography>
             </Stack>
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{currentStaff.role}</Typography>
           </Stack>
         </Box>
       </Stack>
 
       <Grid container spacing={4}>
-        {/* Left Column: Active Ritual & Schedule */}
         <Grid size={{ xs: 12, lg: 8 }}>
           <Stack spacing={4}>
-            {/* NOW ACTIVE Ritual Card */}
-            {activeRitual && (
-              <Paper 
-                elevation={0} 
-                sx={{ 
-                  p: 4, 
-                  borderRadius: '40px', 
-                  bgcolor: isDarkMode ? 'rgba(181, 148, 16, 0.05)' : 'rgba(15, 23, 42, 0.02)', 
-                  border: '2px solid', 
+            {activeAppointment && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  borderRadius: '24px',
+                  bgcolor: isDarkMode ? alpha(theme.palette.secondary.main, 0.08) : alpha(theme.palette.secondary.main, 0.05),
+                  border: '2px solid',
                   borderColor: 'secondary.main',
                   position: 'relative',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
                 }}
               >
-                <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.05 }}>
-                  <Flame size={120} />
-                </Box>
-                
                 <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 4 }}>
                   <Box>
-                    <Typography sx={{ fontSize: '11px', fontWeight: 900, color: 'secondary.main', letterSpacing: '0.15em', mb: 1 }}>NOW ACTIVE</Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 900 }}>{activeRitual.customerName}</Typography>
-                    <Typography variant="body2" color="text.secondary">{activeService?.name}</Typography>
+                    <Typography sx={{ fontSize: '11px', fontWeight: 900, color: 'secondary.main', letterSpacing: '0.1em', mb: 1 }}>Now active</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 900 }}>{activeAppointment.customerName}</Typography>
+                    <Typography variant="body2" color="text.secondary">{activeAppointment.serviceName}</Typography>
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="h3" sx={{ fontWeight: 900, color: 'text.primary' }}>{timeLeft}m</Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: '0.1em' }}>REMAINING</Typography>
+                    <Typography variant="h3" sx={{ fontWeight: 900 }}>{timeRemaining}m</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>Remaining</Typography>
                   </Box>
                 </Stack>
-
-                <Box sx={{ mb: 4 }}>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={((activeService?.duration || 45) - timeLeft) / (activeService?.duration || 45) * 100} 
-                    sx={{ 
-                      height: 12, 
-                      borderRadius: 6, 
-                      bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-                      '& .MuiLinearProgress-bar': { bgcolor: 'secondary.main', borderRadius: 6 }
-                    }} 
-                  />
-                </Box>
-
-                <Stack direction="row" spacing={2}>
-                  <Button variant="contained" disableElevation fullWidth sx={{ borderRadius: '100px', py: 1.5, bgcolor: 'text.primary', fontWeight: 900 }}>
-                    Complete Ritual
+                <LinearProgress
+                  variant="determinate"
+                  value={((activeAppointment.duration || 30) - timeRemaining) / (activeAppointment.duration || 30) * 100}
+                  sx={{
+                    height: 12,
+                    borderRadius: 6,
+                    bgcolor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                    '& .MuiLinearProgress-bar': { bgcolor: 'secondary.main', borderRadius: 6 },
+                  }}
+                />
+                <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+                  <Button variant="contained" disableElevation fullWidth sx={{ borderRadius: '100px', py: 1.5, fontWeight: 900, bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.800' } }}>
+                    Complete appointment
                   </Button>
-                  <Button variant="outlined" sx={{ borderRadius: '100px', minWidth: 140, fontWeight: 900, border: '2.5px solid' }}>
-                    Add Extra
+                  <Button variant="outlined" sx={{ borderRadius: '100px', minWidth: 120, fontWeight: 900, borderColor: 'secondary.main', color: 'secondary.main', '&:hover': { borderColor: 'secondary.dark', color: 'secondary.dark', bgcolor: 'action.hover' } }}>
+                    Add extra
                   </Button>
                 </Stack>
               </Paper>
             )}
 
-            {/* Performance Transparency Scorecard */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider' }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: '24px', border: '1.5px solid', borderColor: 'divider' }}>
               <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 4 }}>
                 <BarChart3 size={20} color={theme.palette.secondary.main} />
-                <Typography variant="h6" sx={{ fontWeight: 900 }}>Artisan Scorecard</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 900 }}>Staff scorecard</Typography>
               </Stack>
-              
               <Grid container spacing={3}>
-                {/* Rating Breakdown */}
                 <Grid size={{ xs: 12, md: 5 }}>
                   <Box sx={{ p: 3, borderRadius: '24px', bgcolor: 'action.hover', height: '100%' }}>
-                    <Typography sx={{ fontSize: '11px', fontWeight: 900, color: 'text.secondary', letterSpacing: '0.1em', mb: 2 }}>CLIENT FEEDBACK</Typography>
-                    <Stack spacing={1.5}>
-                      {performanceMetrics.ratingBreakdown.map((r) => (
-                        <Stack key={r.stars} direction="row" spacing={2} alignItems="center">
-                          <Typography sx={{ minWidth: 50, fontSize: '12px', fontWeight: 800 }}>{r.stars} Stars</Typography>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={(r.count / 138) * 100} 
-                            sx={{ flex: 1, height: 6, borderRadius: 3, bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', '& .MuiLinearProgress-bar': { bgcolor: r.stars === 5 ? 'secondary.main' : 'text.secondary' } }} 
-                          />
-                          <Typography sx={{ minWidth: 30, fontSize: '11px', fontWeight: 800, color: 'text.secondary' }}>{r.count}</Typography>
-                        </Stack>
-                      ))}
-                    </Stack>
-                    <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: '16px', textAlign: 'center' }}>
-                       <Typography variant="h4" sx={{ fontWeight: 900 }}>4.9</Typography>
-                       <Rating value={4.9} precision={0.1} readOnly size="small" sx={{ color: 'secondary.main' }} />
-                       <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 600 }}>Lifetime Artisan Rating</Typography>
+                    <Typography sx={{ fontSize: '11px', fontWeight: 900, color: 'text.secondary', letterSpacing: '0.05em', mb: 2 }}>Client feedback</Typography>
+                    <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: '16px', textAlign: 'center' }}>
+                      <Typography variant="h4" sx={{ fontWeight: 900 }}>{Number(currentStaff.rating) || 0}</Typography>
+                      <Rating value={Number(currentStaff.rating) || 0} precision={0.1} readOnly size="small" sx={{ color: 'secondary.main' }} />
+                      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 600 }}>Average rating</Typography>
                     </Box>
                   </Box>
                 </Grid>
-
-                {/* Core KPI Metrics */}
                 <Grid size={{ xs: 12, md: 7 }}>
-                  <Stack spacing={2} sx={{ height: '100%' }}>
+                  <Stack spacing={2}>
                     <Paper elevation={0} sx={{ p: 2.5, borderRadius: '24px', border: '1.5px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Stack direction="row" spacing={2} alignItems="center">
-                        <Box sx={{ p: 1, bgcolor: 'rgba(16, 185, 129, 0.1)', color: '#10B981', borderRadius: '10px' }}><Repeat size={18} /></Box>
+                        <Box sx={{ p: 1, bgcolor: alpha(theme.palette.success.main, 0.1), color: 'success.main', borderRadius: '10px' }}><Repeat size={18} /></Box>
                         <Box>
-                          <Typography sx={{ fontSize: '13px', fontWeight: 800 }}>Rebooking Rate</Typography>
+                          <Typography sx={{ fontSize: '13px', fontWeight: 800 }}>Rebooking rate</Typography>
                           <Typography variant="caption" color="text.secondary">Clients who return within 8 weeks</Typography>
                         </Box>
                       </Stack>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="h6" sx={{ fontWeight: 900 }}>{performanceMetrics.rebookingRate}%</Typography>
-                        <Chip label="ELITE" size="small" sx={{ height: 16, fontSize: '8px', fontWeight: 900, bgcolor: 'success.main', color: 'white' }} />
-                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 900, color: 'success.main' }}>{performanceMetrics.rebookingRate != null ? `${performanceMetrics.rebookingRate}%` : '—'}</Typography>
                     </Paper>
-
                     <Paper elevation={0} sx={{ p: 2.5, borderRadius: '24px', border: '1.5px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Stack direction="row" spacing={2} alignItems="center">
-                        <Box sx={{ p: 1, bgcolor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1', borderRadius: '100px' }}><Clock size={18} /></Box>
+                        <Box sx={{ p: 1, bgcolor: alpha(theme.palette.secondary.main, 0.1), color: 'secondary.main', borderRadius: '10px' }}><Clock size={18} /></Box>
                         <Box>
-                          <Typography sx={{ fontSize: '13px', fontWeight: 800 }}>On-Time Start</Typography>
-                          <Typography variant="caption" color="text.secondary">Rituals commenced within 5 min</Typography>
+                          <Typography sx={{ fontSize: '13px', fontWeight: 800 }}>On-time start</Typography>
+                          <Typography variant="caption" color="text.secondary">Appointments started within 5 min</Typography>
                         </Box>
                       </Stack>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="h6" sx={{ fontWeight: 900 }}>{performanceMetrics.onTimeRate}%</Typography>
-                        <Typography variant="caption" color="success.main" sx={{ fontWeight: 700 }}>+2% vs last mo</Typography>
-                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 900, color: 'secondary.main' }}>{performanceMetrics.onTimeRate != null ? `${performanceMetrics.onTimeRate}%` : '—'}</Typography>
                     </Paper>
-
                     <Paper elevation={0} sx={{ p: 2.5, borderRadius: '24px', border: '1.5px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Stack direction="row" spacing={2} alignItems="center">
-                        <Box sx={{ p: 1, bgcolor: 'rgba(244, 63, 94, 0.1)', color: '#F43F5E', borderRadius: '10px' }}><AlertCircle size={18} /></Box>
+                        <Box sx={{ p: 1, bgcolor: alpha(theme.palette.error.main, 0.1), color: 'error.main', borderRadius: '10px' }}><AlertCircle size={18} /></Box>
                         <Box>
-                          <Typography sx={{ fontSize: '13px', fontWeight: 800 }}>Cancel Responsibility</Typography>
+                          <Typography sx={{ fontSize: '13px', fontWeight: 800 }}>Cancel responsibility</Typography>
                           <Typography variant="caption" color="text.secondary">Staff-initiated cancellations</Typography>
                         </Box>
                       </Stack>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="h6" sx={{ fontWeight: 900, color: performanceMetrics.cancelResponsibility > 5 ? 'error.main' : 'text.primary' }}>{performanceMetrics.cancelResponsibility}%</Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Well below limit</Typography>
-                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 900, color: 'error.main' }}>{performanceMetrics.cancelRate}%</Typography>
                     </Paper>
                   </Stack>
                 </Grid>
               </Grid>
-
-              <Box sx={{ mt: 4, p: 3, borderRadius: '24px', bgcolor: isDarkMode ? 'rgba(181, 148, 16, 0.05)' : 'rgba(212, 175, 55, 0.03)', border: '1px dashed', borderColor: 'secondary.main' }}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Sparkles size={20} color={theme.palette.secondary.main} />
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    <Box component="span" sx={{ fontWeight: 900, color: 'secondary.main' }}>AI Growth Path:</Box> Your rebooking rate is 15% above the collective average. Focus on "Luxury Manicure" upselling to reach Sovereign level.
-                  </Typography>
-                </Stack>
-              </Box>
             </Paper>
 
-            {/* Schedule Timeline */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider' }}>
-              <Typography variant="h6" sx={{ fontWeight: 900, mb: 4 }}>Upcoming Rituals</Typography>
-              <Stack spacing={2}>
-                {appointments.filter(a => a.id !== activeRitualId).map((apt) => {
-                  const srv = SERVICES.find(s => s.id === apt.serviceId);
-                  return (
-                    <Paper 
-                      key={apt.id} 
-                      elevation={0} 
-                      sx={{ 
-                        p: 3, 
-                        borderRadius: '24px', 
-                        border: '1.5px solid', 
+            <Paper elevation={0} sx={{ p: 4, borderRadius: '24px', border: '1.5px solid', borderColor: 'divider' }}>
+              <Typography variant="h6" sx={{ fontWeight: 900, mb: 4 }}>Upcoming appointments</Typography>
+              {appointmentsLoading ? (
+                <Box sx={{ py: 4, textAlign: 'center' }}><CircularProgress size={32} /></Box>
+              ) : appointments.filter((a) => a.id !== activeAppointmentId).length === 0 ? (
+                <Typography color="text.secondary" sx={{ py: 3 }}>No more appointments today.</Typography>
+              ) : (
+                <Stack spacing={2}>
+                  {appointments.filter((a) => a.id !== activeAppointmentId).map((apt) => (
+                    <Paper
+                      key={apt.id}
+                      elevation={0}
+                      sx={{
+                        p: 3,
+                        borderRadius: '20px',
+                        border: '1.5px solid',
                         borderColor: 'divider',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        '&:hover': { bgcolor: 'action.hover' }
+                        '&:hover': { bgcolor: 'action.hover' },
                       }}
                     >
                       <Stack direction="row" spacing={3} alignItems="center">
                         <Box sx={{ textAlign: 'center', minWidth: 60 }}>
-                          <Typography sx={{ fontWeight: 900, fontSize: '15px' }}>{apt.time.split(' ')[0]}</Typography>
-                          <Typography sx={{ fontSize: '10px', fontWeight: 800, opacity: 0.6 }}>{apt.time.split(' ')[1]}</Typography>
+                          <Typography sx={{ fontWeight: 900, fontSize: '15px' }}>{formatTime(apt.time)}</Typography>
                         </Box>
                         <Divider orientation="vertical" flexItem />
                         <Box>
                           <Typography sx={{ fontWeight: 800 }}>{apt.customerName}</Typography>
-                          <Typography variant="caption" color="text.secondary">{srv?.name}</Typography>
+                          <Typography variant="caption" color="text.secondary">{apt.serviceName}</Typography>
                         </Box>
                       </Stack>
-                      <IconButton><ChevronRight size={20} /></IconButton>
+                      <IconButton onClick={() => { setActiveAppointmentId(apt.id); setTimeRemaining(apt.duration ?? 30); }}><ChevronRight size={20} /></IconButton>
                     </Paper>
-                  );
-                })}
-              </Stack>
+                  ))}
+                </Stack>
+              )}
             </Paper>
           </Stack>
         </Grid>
 
-        {/* Right Column: Intelligence & Earnings */}
         <Grid size={{ xs: 12, lg: 4 }}>
-          <Stack spacing={4}>
-            {/* Client Intelligence (Allergies/Notes) */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+          <Stack spacing={3} sx={{ pt: 0 }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: '24px', border: '1.5px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
               <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
                 <ClipboardList size={20} color={theme.palette.secondary.main} />
-                <Typography variant="h6" sx={{ fontWeight: 900 }}>Intelligence Cache</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 900 }}>Client notes</Typography>
               </Stack>
-              
-              {activeRitual && (
+              {activeAppointment ? (
                 <Stack spacing={3}>
-                  <Box sx={{ p: 2.5, borderRadius: '20px', bgcolor: alpha(theme.palette.error.main, 0.05), border: '1.5px dashed', borderColor: alpha(theme.palette.error.main, 0.2) }}>
-                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-                      <AlertCircle size={18} color={theme.palette.error.main} />
-                      <Typography sx={{ fontSize: '11px', fontWeight: 900, color: theme.palette.error.main, letterSpacing: '0.1em' }}>CRITICAL ALLERGY</Typography>
-                    </Stack>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{activeRitual.allergies}</Typography>
+                  {activeAppointment.allergies ? (
+                    <Box sx={{ p: 2.5, borderRadius: '16px', bgcolor: alpha(theme.palette.error.main, 0.08), border: '1.5px dashed', borderColor: alpha(theme.palette.error.main, 0.3) }}>
+                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+                        <AlertCircle size={18} color={theme.palette.error.main} />
+                        <Typography sx={{ fontSize: '11px', fontWeight: 900, color: theme.palette.error.main }}>Allergy</Typography>
+                      </Stack>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{activeAppointment.allergies}</Typography>
+                    </Box>
+                  ) : null}
+                  <Box sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'action.hover' }}>
+                    <Typography sx={{ fontSize: '11px', fontWeight: 900, color: 'text.secondary', mb: 1 }}>Preferences</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, fontStyle: activeAppointment.notes ? 'italic' : undefined }}>{activeAppointment.notes || 'No special notes.'}</Typography>
                   </Box>
-
-                  <Box sx={{ p: 2.5, borderRadius: '20px', bgcolor: 'action.hover' }}>
-                    <Typography sx={{ fontSize: '11px', fontWeight: 900, color: 'text.secondary', letterSpacing: '0.1em', mb: 1 }}>PREFERENCES</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 500, fontStyle: 'italic' }}>"{activeRitual.notes}"</Typography>
-                  </Box>
-
-                  <Button variant="outlined" startIcon={<History size={16} />} sx={{ borderRadius: '100px', fontWeight: 800, textTransform: 'none' }}>
-                    View Ritual History
+                  <Button variant="outlined" startIcon={<History size={16} />} sx={{ borderRadius: '100px', fontWeight: 800, textTransform: 'none', borderColor: 'secondary.main', color: 'secondary.main', '&:hover': { borderColor: 'secondary.dark', color: 'secondary.dark', bgcolor: 'action.hover' } }}>
+                    View appointment history
                   </Button>
                 </Stack>
+              ) : (
+                <Typography variant="body2" color="text.secondary">Select an appointment to see client notes.</Typography>
               )}
             </Paper>
 
-            {/* Artisan Performance/Earnings */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', bgcolor: 'text.primary', color: 'background.paper' }}>
-              <Typography sx={{ fontSize: '11px', fontWeight: 900, opacity: 0.6, letterSpacing: '0.1em', mb: 3 }}>ARTISAN PERFORMANCE</Typography>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: '24px', bgcolor: 'text.primary', color: 'background.paper' }}>
+              <Typography sx={{ fontSize: '11px', fontWeight: 900, opacity: 0.7, letterSpacing: '0.05em', mb: 3 }}>Staff performance</Typography>
               <Stack spacing={3}>
                 {stats.map((stat) => (
                   <Stack key={stat.label} direction="row" justifyContent="space-between" alignItems="center">
                     <Stack direction="row" spacing={2} alignItems="center">
-                      <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'rgba(255,255,255,0.1)', color: 'white' }}>{stat.icon}</Box>
-                      <Typography sx={{ fontWeight: 700, fontSize: '14px' }}>{stat.label}</Typography>
+                      <Box sx={{ p: 1, borderRadius: '10px', bgcolor: 'rgba(255,255,255,0.1)', color: 'background.paper' }}>{stat.icon}</Box>
+                      <Typography sx={{ fontWeight: 700, fontSize: '14px', color: 'background.paper' }}>{stat.label}</Typography>
                     </Stack>
-                    <Typography sx={{ fontWeight: 900, color: stat.color === '#10B981' ? '#10B981' : 'inherit' }}>{stat.value}</Typography>
+                    <Typography sx={{ fontWeight: 900, color: stat.color }}>{stat.value}</Typography>
                   </Stack>
                 ))}
               </Stack>
               <Divider sx={{ my: 3, borderColor: 'rgba(255,255,255,0.1)' }} />
-              <Button fullWidth endIcon={<Sparkles size={16} />} sx={{ color: 'secondary.main', fontWeight: 900, textTransform: 'none' }}>
-                Analyze Monthly Yield
+              <Button fullWidth endIcon={<Sparkles size={16} />} sx={{ color: 'secondary.main', fontWeight: 900, textTransform: 'none', '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
+                Analyze monthly performance
               </Button>
             </Paper>
 
-            {/* Quick Messages */}
-            <Paper 
-              elevation={0} 
-              sx={{ 
-                p: 3, 
-                borderRadius: '32px', 
-                border: '1.5px solid', 
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: '24px',
+                border: '1.5px solid',
                 borderColor: 'divider',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 2,
                 cursor: 'pointer',
-                transition: 'all 0.2s',
-                '&:hover': { bgcolor: 'action.hover' }
+                '&:hover': { bgcolor: 'action.hover' },
               }}
             >
-              <Box sx={{ position: 'relative' }}>
-                <Avatar sx={{ bgcolor: 'secondary.main' }}><MessageSquare size={20} /></Avatar>
-                <Box sx={{ position: 'absolute', top: -2, right: -2, width: 12, height: 12, bgcolor: 'error.main', borderRadius: '50%', border: '2px solid white' }} />
-              </Box>
+              <Avatar sx={{ bgcolor: 'secondary.main' }}><MessageSquare size={20} /></Avatar>
               <Box>
-                <Typography sx={{ fontWeight: 800, fontSize: '14px' }}>Collective Chat</Typography>
-                <Typography variant="caption" color="text.secondary">2 unread from the Front Desk</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: '14px' }}>Team chat</Typography>
+                <Typography variant="caption" color="text.secondary">Messages from the front desk</Typography>
               </Box>
             </Paper>
           </Stack>

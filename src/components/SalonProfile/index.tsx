@@ -37,12 +37,14 @@ interface SalonProfileProps {
   salonId?: string | null;
   onBack: () => void;
   openSalonEditOnMount?: boolean;
+  /** Initial tab index (0=Services, 1=Staff, 2=Branches, 3=Reviews, 4=Archive). Used when navigating with ?tab=staff. */
+  initialTab?: number;
 }
 
-const SalonProfile: React.FC<SalonProfileProps> = ({ salonId, onBack, openSalonEditOnMount }) => {
+const SalonProfile: React.FC<SalonProfileProps> = ({ salonId, onBack, openSalonEditOnMount, initialTab = 0 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(initialTab);
   const dispatch = useDispatch();
 
   // Redux hooks
@@ -246,7 +248,7 @@ const SalonProfile: React.FC<SalonProfileProps> = ({ salonId, onBack, openSalonE
   if (salonError && !reduxSalon?.id) return <ErrorState onBack={onBack} salonId={salonId} />;
 
   return (
-    <Box sx={{ pb: 10 }} className="animate-fadeIn">
+    <Box sx={{ pb: 10, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }} className="animate-fadeIn">
       <HeaderSection onBack={onBack} />
 
       {salon.id && (

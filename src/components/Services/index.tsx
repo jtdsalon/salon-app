@@ -53,6 +53,8 @@ export default function Services() {
   const handleOpenModal = (service?: ServiceMenuItem) => {
     if (service) {
       const fullService = (serviceList ?? []).find((s) => s.id === service.id) as (typeof serviceList)[0] & { images?: string[] };
+      const images = (fullService as any)?.images ?? (service as { images?: string[] }).images;
+      const imagesList = Array.isArray(images) ? [...images] : [];
       setEditingService(service);
       setFormData({
         id: service.id,
@@ -62,7 +64,7 @@ export default function Services() {
         duration: service.duration ?? service.duration_minutes ?? 30,
         category: service.category,
         description: (fullService as any)?.description ?? service.description ?? '',
-        images: (fullService as any)?.images ?? [],
+        images: imagesList,
       });
     } else {
       setEditingService(null);
@@ -120,6 +122,7 @@ export default function Services() {
     duration: (s as { duration?: number }).duration,
     popularity: (s as { popularity?: number }).popularity,
     description: s.description,
+    images: (s as { images?: string[] }).images,
   }));
 
   return (
@@ -153,7 +156,7 @@ export default function Services() {
       <Dialog
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        PaperProps={{ sx: { borderRadius: '24px', p: 1, maxWidth: 320 } }}
+        PaperProps={{ sx: { borderRadius: '24px', p: 1, maxWidth: { xs: 'calc(100vw - 32px)', sm: 320 }, width: { xs: '100%', sm: 'auto' } } }}
       >
         <DialogTitle sx={{ textAlign: 'center' }}>
           <Box sx={{ color: '#ef4444', mb: 1 }}>

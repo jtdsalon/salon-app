@@ -1,6 +1,6 @@
 import networkClient from './networkClient'
 import * as endpoints from './endPoints'
-import { ROUTES } from '../../routes/routeConfig'
+import { ROUTES, BASE_PATH } from '../../routes/routeConfig'
 // import { useAuthContext } from '../../state/AuthContext'
 
 // Setup response interceptor for token refresh
@@ -36,7 +36,8 @@ export const setupAuthInterceptor = () => {
           localStorage.removeItem('token')
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('user')
-          window.location.href = ROUTES.LOGIN
+          const loginPath = BASE_PATH + (ROUTES.LOGIN.startsWith('/') ? ROUTES.LOGIN : '/' + ROUTES.LOGIN)
+          window.location.href = loginPath
           return Promise.reject(refreshError)
         }
       }

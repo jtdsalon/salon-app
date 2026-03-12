@@ -61,7 +61,9 @@ const VerificationPage: React.FC = () => {
           email={user?.email ?? ''}
           phone={user?.phone ?? ''}
           onVerify={handleVerifyComplete}
-          onResendEmail={async () => {}}
+          onResendEmail={async () => {
+            await authService.resendVerificationEmail();
+          }}
           onResendPhone={async () => {}}
           isLoading={isLoading}
           sampleCode="123456"

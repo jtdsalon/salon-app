@@ -20,7 +20,8 @@ import {
   Checkbox,
   Alert,
   Snackbar,
-  Chip
+  Chip,
+  useMediaQuery
 } from '@mui/material';
 import {
   X,
@@ -82,6 +83,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
   imagePreviewUrls = {}
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [errors, setErrors] = React.useState<SalonFormErrors>({});
   const [touched, setTouched] = React.useState<Set<string>>(new Set());
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
@@ -205,29 +207,35 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
         onClose={handleClose}
         maxWidth="md"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '48px', p: 1 } }}
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            borderRadius: isMobile ? 0 : '48px',
+            p: isMobile ? 0 : 1,
+          }
+        }}
       >
-        <DialogTitle sx={{ p: 4, pb: 2 }}>
+        <DialogTitle sx={{ p: isMobile ? 3 : 4, pb: 2 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="h5" sx={{ fontWeight: 900 }}>Edit Salon Profile</Typography>
+            <Typography variant={isMobile ? 'h6' : 'h5'} sx={{ fontWeight: 900 }}>Edit Salon Profile</Typography>
             <IconButton onClick={handleClose} disabled={isUpdating}><X size={20} /></IconButton>
           </Stack>
           <Typography variant="body2" color="text.secondary">Update the public details of your salon.</Typography>
         </DialogTitle>
 
         {updateError && (
-          <Box sx={{ px: 4, pt: 2 }}>
+          <Box sx={{ px: isMobile ? 3 : 4, pt: 2 }}>
             <Alert severity="error" onClose={clearMessages} sx={{ borderRadius: '16px' }}>
               {updateError}
             </Alert>
           </Box>
         )}
 
-        <DialogContent sx={{ px: 4, pt: 2 }}>
-          <Stack spacing={4}>
+        <DialogContent sx={{ px: isMobile ? 3 : 4, pt: 2, pb: isMobile ? 2 : 3, overflowY: 'auto' }}>
+          <Stack spacing={isMobile ? 3 : 4}>
             <Stack spacing={2}>
               <Typography sx={{ fontWeight: 800, fontSize: '14px' }}>Cover Image <RequiredIndicator /></Typography>
-              <Box sx={{ position: 'relative', height: 160, borderRadius: '24px', overflow: 'hidden', border: '1px solid', borderColor: errors.cover ? 'error.main' : 'divider', bgcolor: 'action.hover' }}>
+              <Box sx={{ position: 'relative', height: isMobile ? 120 : 160, borderRadius: isMobile ? '16px' : '24px', overflow: 'hidden', border: '1px solid', borderColor: errors.cover ? 'error.main' : 'divider', bgcolor: 'action.hover' }}>
                 {imagePreviewUrls.cover || fullCoverUrl ? (
                   <Box component="img" src={imagePreviewUrls.cover || fullCoverUrl} sx={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isProcessingImage ? 0.5 : 1 }} />
                 ) : (
@@ -240,7 +248,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                   onClick={() => coverInputRef.current?.click()}
                   disabled={isProcessingImage || isUpdating}
                   startIcon={isProcessingImage ? <CircularProgress size={16} color="inherit" /> : <ImageIconLucide size={18} />}
-                  sx={{ position: 'absolute', bottom: 16, right: 16, bgcolor: 'rgba(255,255,255,0.8)', color: 'text.primary', backdropFilter: 'blur(10px)', borderRadius: '100px', px: 2 }}
+                  sx={{ position: 'absolute', bottom: isMobile ? 12 : 16, right: isMobile ? 12 : 16, bgcolor: 'rgba(255,255,255,0.8)', color: 'text.primary', backdropFilter: 'blur(10px)', borderRadius: '100px', px: isMobile ? 1.5 : 2, fontSize: isMobile ? '0.8rem' : undefined }}
                 >
                   Change Cover
                 </Button>
@@ -250,9 +258,9 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                 <Typography variant="caption" color="error.main" sx={{ mt: -1 }}>{errors.cover}</Typography>
               )}
 
-              <Stack direction="row" spacing={3} alignItems="center">
-                <Box sx={{ position: 'relative' }}>
-                  <Avatar src={imagePreviewUrls.avatar || fullAvatarUrl} sx={{ width: 80, height: 80, border: '4px solid', borderColor: errors.avatar ? 'error.main' : 'background.paper', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+              <Stack direction="row" spacing={isMobile ? 2 : 3} alignItems="center">
+                <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                  <Avatar src={imagePreviewUrls.avatar || fullAvatarUrl} sx={{ width: isMobile ? 64 : 80, height: isMobile ? 64 : 80, border: '4px solid', borderColor: errors.avatar ? 'error.main' : 'background.paper', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                   <IconButton
                     onClick={() => avatarInputRef.current?.click()}
                     disabled={isProcessingImage || isUpdating}
@@ -310,7 +318,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                     <RefreshCw size={12} />
                   </IconButton>
                 </Stack>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 0.5 }}>
                   {suggestions.map((suggestion) => (
                     <Chip
                       key={suggestion}
@@ -355,7 +363,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                 fullWidth
                 label="Philosophy & Bio"
                 multiline
-                rows={3}
+                rows={isMobile ? 2 : 3}
                 value={salonFormData.bio}
                 onChange={(e) => handleFieldChange('bio', e.target.value)}
                 onBlur={() => handleFieldBlur('bio')}
@@ -389,7 +397,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                 />
                 <TextField
                   fullWidth
-                  label={<>Area / Neighbourhood <RequiredIndicator /></>}
+                  label={<>Area or neighbourhood <RequiredIndicator /></>}
                   value={salonFormData.area ?? ''}
                   onChange={(e) => handleFieldChange('area', e.target.value)}
                   onBlur={() => handleFieldBlur('area')}
@@ -400,8 +408,8 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                 />
               </Stack>
 
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, mt: 2, mb: 1, color: 'text.secondary' }}>Social &amp; Web (optional)</Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, mt: 2, mb: 1, color: 'text.secondary', fontSize: isMobile ? '0.8rem' : undefined }}>Social &amp; Web (optional)</Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap" useFlexGap>
                 <TextField
                   fullWidth
                   label="Website URL"
@@ -440,7 +448,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                 />
               </Stack>
 
-              <Typography variant="h6" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em', mt: 2 }}>Operating Hours <RequiredIndicator /></Typography>
+              <Typography variant="h6" sx={{ fontWeight: 900, mb: 1, letterSpacing: '-0.02em', mt: 2, fontSize: isMobile ? '1rem' : undefined }}>Operating Hours <RequiredIndicator /></Typography>
 
               {errors.hours && touched.has('hours') && (
                 <Alert severity="error" sx={{ borderRadius: '16px', mb: 2 }}>
@@ -450,10 +458,10 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
 
               <Stack spacing={2}>
                 {salonFormData.hours && salonFormData.hours.map((hour: OperatingHour, idx: number) => (
-                  <Box key={hour.day} sx={{ p: 2, borderRadius: '24px', border: '1.5px solid', borderColor: hour.isOpen ? 'secondary.main' : 'divider', bgcolor: hour.isOpen ? 'rgba(181, 148, 16, 0.02)' : 'action.hover' }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
-                      <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
-                        <Typography sx={{ fontWeight: 800, minWidth: 100, fontSize: '14px' }}>{hour.day}</Typography>
+                  <Box key={hour.day} sx={{ p: isMobile ? 1.5 : 2, borderRadius: isMobile ? '16px' : '24px', border: '1.5px solid', borderColor: hour.isOpen ? 'secondary.main' : 'divider', bgcolor: hour.isOpen ? 'rgba(181, 148, 16, 0.02)' : 'action.hover' }}>
+                    <Stack direction={isMobile ? 'column' : 'row'} alignItems={isMobile ? 'flex-start' : 'center'} justifyContent="space-between" spacing={isMobile ? 2 : 0}>
+                      <Stack direction="row" spacing={2} alignItems="center" sx={{ width: isMobile ? '100%' : 'auto', flex: isMobile ? undefined : 1 }}>
+                        <Typography sx={{ fontWeight: 800, minWidth: isMobile ? 72 : 100, fontSize: isMobile ? '13px' : '14px' }}>{hour.day}</Typography>
                         <FormControlLabel
                           control={<Switch checked={hour.isOpen} onChange={(e) => handleOperatingHourFieldChange(idx, 'isOpen', e.target.checked)} color="secondary" disabled={isUpdating} />}
                           label={<Typography sx={{ fontSize: '12px', fontWeight: 900, color: hour.isOpen ? 'secondary.main' : 'text.secondary' }}>{hour.isOpen ? 'OPEN' : 'CLOSED'}</Typography>}
@@ -461,7 +469,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                       </Stack>
 
                       <Fade in={hour.isOpen}>
-                        <Stack direction="row" spacing={2} sx={{ flex: 1, opacity: hour.isOpen ? 1 : 0 }}>
+                        <Stack direction="row" spacing={2} sx={{ width: isMobile ? '100%' : 'auto', flex: isMobile ? undefined : 1, opacity: hour.isOpen ? 1 : 0 }}>
                           <TextField
                             type="time"
                             label="Open"
@@ -470,6 +478,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                             onBlur={() => handleOperatingHourBlur(idx)}
                             disabled={isUpdating}
                             size="small"
+                            fullWidth={isMobile}
                             InputLabelProps={{ shrink: true }}
                             sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                           />
@@ -481,6 +490,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
                             onBlur={() => handleOperatingHourBlur(idx)}
                             disabled={isUpdating}
                             size="small"
+                            fullWidth={isMobile}
                             InputLabelProps={{ shrink: true }}
                             sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                           />
@@ -493,7 +503,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
             </Stack>
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ p: 4, pt: 2 }}>
+        <DialogActions sx={{ p: isMobile ? 3 : 4, pt: 2, pb: isMobile ? 'max(24px, env(safe-area-inset-bottom))' : 2 }}>
           <Button
             fullWidth
             variant="contained"
@@ -504,7 +514,7 @@ export const SalonEditDialog: React.FC<SalonEditDialogProps> = ({
               borderRadius: '100px',
               bgcolor: 'text.primary',
               color: 'background.paper',
-              py: 2,
+              py: isMobile ? 1.5 : 2,
               fontWeight: 900,
               '&:hover': { bgcolor: 'secondary.main' },
               '&:disabled': { opacity: 0.6 }
@@ -550,7 +560,7 @@ interface DeleteConfirmationDialogProps {
 }
 
 export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({ open, onClose, onConfirm, title, message }) => (
-  <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: '32px', p: 1, maxWidth: 320 } }}>
+  <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: '32px', p: 1, maxWidth: { xs: 'calc(100vw - 32px)', sm: 320 }, width: { xs: '100%', sm: 'auto' } } }}>
     <DialogTitle sx={{ textAlign: 'center' }}>
       <Box sx={{ color: '#ef4444', mb: 1 }}><AlertTriangle size={48} style={{ margin: '0 auto' }} /></Box>
       <Typography variant="h6" sx={{ fontWeight: 900 }}>{title}</Typography>

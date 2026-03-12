@@ -51,7 +51,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     };
 
     return (
-        <Stack spacing={4} className="animate-fadeIn">
+        <Stack spacing={4} className="animate-fadeIn" sx={{ width: '100%', boxSizing: 'border-box' }}>
             <Box>
                 <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.04em', mb: 1 }}>
                     Sign <Box component="span" sx={{ color: ACCENT_COLOR }}>In</Box>
@@ -67,8 +67,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                 </Alert>
             )}
 
-            <form onSubmit={handleSubmit} noValidate>
-                <Stack spacing={2.5}>
+            <form onSubmit={handleSubmit} noValidate style={{ width: '100%' }}>
+                <Stack spacing={2.5} sx={{ width: '100%', boxSizing: 'border-box', px: 1 }}>
                     <TextField
                         fullWidth
                         label="Email"
@@ -134,7 +134,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                     Don't have an account?{' '}
                     <Button
                         onClick={onSwitchToSignup}
-                        sx={{ color: 'text.primary', fontWeight: 900, p: 0, minWidth: 'auto', textTransform: 'none' }}
+                        sx={{ color: '#EAB308', fontWeight: 900, p: 0, minWidth: 'auto', textTransform: 'none', '&:hover': { color: '#ca9b07', bgcolor: 'transparent' } }}
                     >
                         Sign up
                     </Button>

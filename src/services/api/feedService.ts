@@ -3,6 +3,8 @@ import networkClient from './networkClient'
 import { HTTP_METHOD } from '../../lib/enums/httpData'
 import {
   GET_POSTS_URL,
+  GET_FAVOURITES_FEED_URL,
+  GET_PUBLIC_FEED_URL,
   GET_POST_URL,
   CREATE_POST_URL,
   UPDATE_POST_URL,
@@ -39,6 +41,28 @@ export function getFeedPostsApi(
     method: HTTP_METHOD.GET,
     url: GET_POSTS_URL,
     params,
+  })
+}
+
+export function getFavouritesFeedPostsApi(
+  page = 1,
+  limit = 20
+): Promise<AxiosResponse<FeedPostsResponse>> {
+  return networkClient().request({
+    method: HTTP_METHOD.GET,
+    url: GET_FAVOURITES_FEED_URL,
+    params: { page, limit },
+  })
+}
+
+export function getPublicFeedPostsApi(
+  page = 1,
+  limit = 20
+): Promise<AxiosResponse<FeedPostsResponse>> {
+  return networkClient().request({
+    method: HTTP_METHOD.GET,
+    url: GET_PUBLIC_FEED_URL,
+    params: { page, limit },
   })
 }
 
@@ -225,6 +249,7 @@ export async function createPostWithUploads(
     is_transformation: payload.is_transformation,
     salon_id: payload.salon_id,
     page_id: payload.page_id,
+    parent_post_id: payload.parent_post_id,
   })
 }
 

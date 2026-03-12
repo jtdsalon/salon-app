@@ -122,7 +122,7 @@ const NotificationsView: React.FC = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 12 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 12, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
       <Container maxWidth="sm">
         {/* Header */}
         <Box sx={{ textAlign: 'center', pt: 6, mb: 4 }}>

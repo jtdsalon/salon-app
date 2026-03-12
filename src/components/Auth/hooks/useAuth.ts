@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAuthAction } from '@/components/Auth/hooks/useAuthAction';
 import { getCategories } from '@/state/salon/getCategories';
+import authService from '@/services/api/authService';
 import type { RootState } from '@/state/store';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
@@ -75,7 +76,7 @@ export const useAuth = (callbacks: UseAuthCallbacks | (() => void)) => {
     /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(phone);
 
   const handleAction = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       const newErrors: Record<string, string> = {};
 
@@ -119,8 +120,15 @@ export const useAuth = (callbacks: UseAuthCallbacks | (() => void)) => {
           category: formState.category,
         });
       } else if (mode === 'forgot') {
-        setSnackbar({ open: true, message: 'Recovery manifesto sent.', severity: 'success' });
-        setMode('login');
+        try {
+          await authService.forgotPassword(formState.email);
+          setSnackbar({ open: true, message: 'If an account exists, you will receive a reset link.', severity: 'success' });
+          setMode('login');
+        } catch (err: unknown) {
+          const e = err as { response?: { data?: { message?: string } }; message?: string; errorMessage?: string };
+          const msg = e?.response?.data?.message ?? e?.errorMessage ?? e?.message ?? 'Failed to send reset link.';
+          setSnackbar({ open: true, message: msg, severity: 'error' });
+        }
       }
     },
     [mode, formState, login, register]

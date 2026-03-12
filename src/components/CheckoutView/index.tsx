@@ -67,9 +67,9 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({ items, onBack, onComplete }
 
   if (isSuccess) {
     return (
-      <Box sx={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', px: 2 }}>
         <Fade in timeout={1000}>
-          <Box sx={{ textAlign: 'center', maxWidth: 450 }}>
+          <Box sx={{ textAlign: 'center', maxWidth: { xs: '100%', sm: 450 }, width: '100%' }}>
             <Box sx={{ mb: 4, display: 'inline-flex', p: 3, bgcolor: 'secondary.main', borderRadius: '50%', color: 'white', boxShadow: '0 20px 40px rgba(181, 148, 16, 0.2)' }}>
               <CheckCircle2 size={64} strokeWidth={1.5} />
             </Box>
@@ -88,14 +88,14 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({ items, onBack, onComplete }
   }
 
   return (
-    <Box sx={{ py: 4 }} className="animate-fadeIn">
+    <Box sx={{ py: 4, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }} className="animate-fadeIn">
       {/* Header */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 6 }}>
-        <IconButton onClick={handleBack} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 6, minWidth: 0 }}>
+        <IconButton onClick={handleBack} sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0 }} size="medium">
           <ArrowLeft size={20} />
         </IconButton>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: '-0.03em' }}>Checkout <Box component="span" sx={{ color: 'secondary.main' }}>Sanctuary</Box></Typography>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: '-0.03em', fontSize: { xs: '1.35rem', md: '1.5rem' } }}>Checkout <Box component="span" sx={{ color: 'secondary.main' }}>Sanctuary</Box></Typography>
           <Typography variant="body2" color="text.secondary">Secure exchange for your aesthetic rituals.</Typography>
         </Box>
       </Stack>
@@ -117,13 +117,13 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({ items, onBack, onComplete }
                   <Stack spacing={4}>
                     <Typography variant="h6" sx={{ fontWeight: 900 }}>Review Selection</Typography>
                     {items.map((item) => (
-                      <Stack key={item.id} direction="row" spacing={3} alignItems="center">
-                        <Avatar src={item.image} variant="rounded" sx={{ width: 80, height: 80, borderRadius: '20px' }} />
-                        <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ fontWeight: 900 }}>{item.name}</Typography>
+                      <Stack key={item.id} direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
+                        <Avatar src={item.image} variant="rounded" sx={{ width: { xs: 56, sm: 80 }, height: { xs: 56, sm: 80 }, borderRadius: '20px', flexShrink: 0 }} />
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 900, fontSize: { xs: '0.9rem', sm: '1rem' } }}>{item.name}</Typography>
                           <Typography variant="caption" color="text.secondary">{item.brand} • Qty: {item.quantity}</Typography>
                         </Box>
-                        <Typography sx={{ fontWeight: 900 }}>Rs. {(item.price * item.quantity).toLocaleString()}</Typography>
+                        <Typography sx={{ fontWeight: 900, flexShrink: 0, fontSize: { xs: '0.8rem', sm: '1rem' } }}>Rs. {(item.price * item.quantity).toLocaleString()}</Typography>
                       </Stack>
                     ))}
                   </Stack>

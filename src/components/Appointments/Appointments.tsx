@@ -100,9 +100,13 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
   return (
     <Box
       sx={{
-        pb: action.isFocusMode ? 0 : { xs: 4, md: 6 },
+        pb: action.isFocusMode ? 0 : { xs: 12, md: 6 },
         flexGrow: 1,
         display: 'flex',
+        width: '100%',
+        maxWidth: '100%',
+        minWidth: 0,
+        overflowX: 'hidden',
         flexDirection: 'column',
         bgcolor: action.isFocusMode ? 'background.default' : 'transparent',
         height: action.isFocusMode ? '100vh' : 'auto',
@@ -138,7 +142,7 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
               variant="h3"
               sx={{ fontWeight: 900, fontSize: { xs: '1.8rem', md: '2.5rem' }, color: isDark ? 'white' : '#0F172A' }}
             >
-              Appointment <span style={{ color: '#EAB308' }}>Center</span>
+              Appointments
             </Typography>
             <Chip
               icon={<Hash size={14} />}
@@ -156,10 +160,10 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
             <CalendarIcon size={18} color="#EAB308" />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 900, display: { xs: 'none', sm: 'block' } }}>
-            Immersion Mode
+            Full screen
           </Typography>
           <Chip
-            label={`${currentRitualCount} In View`}
+            label={`${currentRitualCount} in view`}
             size="small"
             sx={{ bgcolor: alpha('#EAB308', 0.1), color: '#EAB308', fontWeight: 900, fontSize: '10px' }}
           />
@@ -171,7 +175,7 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
             startIcon={<Minimize2 size={16} />}
             sx={{ borderRadius: '10px', height: 40, px: 2 }}
           >
-            Exit immersion
+            Exit full screen
           </Button>
         </Stack>
       )}
@@ -269,9 +273,9 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
               },
             }}
           >
-            <ToggleButton value="past">PAST</ToggleButton>
-            <ToggleButton value="today">TODAY</ToggleButton>
-            <ToggleButton value="upcoming">UPCOMING</ToggleButton>
+            <ToggleButton value="past">Past</ToggleButton>
+            <ToggleButton value="today">Today</ToggleButton>
+            <ToggleButton value="upcoming">Upcoming</ToggleButton>
           </ToggleButtonGroup>
         </Stack>
 
@@ -345,7 +349,7 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
               flexGrow: { xs: 1, md: 0 },
             }}
           >
-            Book
+            New appointment
           </Button>
         </Stack>
       </Stack>
@@ -408,6 +412,7 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
         initialData={
           editingApt
             ? {
+                customerId: editingApt.customerId ?? '',
                 customerName: editingApt.customerName,
                 serviceId: editingApt.serviceId ?? editingApt.serviceIds?.[0] ?? services[0]?.id ?? '',
                 staffId: editingApt.staffId,
@@ -416,6 +421,7 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
                 notes: '',
               }
             : {
+                customerId: '',
                 customerName: '',
                 serviceId: services[0]?.id ?? '',
                 staffId: '',
@@ -424,6 +430,7 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
                 notes: '',
               }
         }
+        salonId={currentSalonId ?? undefined}
       />
       <AppointmentDetail
         open={detailOpen}

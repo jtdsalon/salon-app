@@ -52,9 +52,9 @@ const Inventory: React.FC<InventoryProps> = ({ onAddToCart }) => {
   };
 
   return (
-    <Box sx={{ pb: 12, position: 'relative' }} className="animate-fadeIn">
+    <Box sx={{ pb: 12, position: 'relative', width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }} className="animate-fadeIn">
       {/* Centered Search Bar */}
-      <Box sx={{ maxWidth: 800, mx: 'auto', mb: 4, mt: 4 }}>
+      <Box sx={{ maxWidth: { xs: '100%', sm: 800 }, mx: 'auto', mb: 4, mt: 4, px: { xs: 0, sm: 0 } }}>
         <TextField
           fullWidth
           placeholder="Search our apothecary..."

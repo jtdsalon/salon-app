@@ -63,7 +63,7 @@ const UnauthorizedPage: React.FC = () => {
             onClick={handleBackToLogin}
             startIcon={<ArrowLeft size={18} />}
             sx={{
-              borderRadius: '100px',
+              borderRadius: '12px',
               px: 4,
               py: 1.5,
               bgcolor: 'text.primary',

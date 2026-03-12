@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { ChevronLeft, Mail } from 'lucide-react';
 import { textFieldProps } from '../constants/auth';
+import { ACCENT_COLOR } from '@/lib/constants/theme';
 
 interface ForgotPasswordFormProps {
     email: string;
@@ -30,21 +31,21 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
     onSwitchToLogin,
 }) => {
     return (
-        <Stack spacing={4} className="animate-fadeIn">
+        <Stack spacing={4} className="animate-fadeIn" sx={{ width: '100%', boxSizing: 'border-box' }}>
             <Box>
                 <IconButton onClick={onSwitchToLogin} sx={{ ml: -1, mb: 2, color: 'text.secondary' }}>
                     <ChevronLeft size={24} />
                 </IconButton>
                 <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.04em', mb: 1 }}>
-                    Forgot <Box component="span" sx={{ color: 'secondary.main' }}>Password</Box>
+                    Forgot <Box component="span" sx={{ color: ACCENT_COLOR }}>Password</Box>
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                     Enter your email and we'll send you a reset link.
                 </Typography>
             </Box>
 
-            <form onSubmit={onSubmit} noValidate>
-                <Stack spacing={3}>
+            <form onSubmit={onSubmit} noValidate style={{ width: '100%' }}>
+                <Stack spacing={3} sx={{ width: '100%', boxSizing: 'border-box', px: 1 }}>
                     <TextField
                         fullWidth
                         label="Email"

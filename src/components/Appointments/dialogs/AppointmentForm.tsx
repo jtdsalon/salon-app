@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Dialog, Box, Stack, Typography, IconButton, DialogContent, Grid2,
   InputBase, Select, MenuItem, Paper, alpha, DialogActions, Button,
-  Avatar, Checkbox, ListItemText, Chip, CircularProgress, FormHelperText
+  Avatar, Checkbox, ListItemText, Chip, CircularProgress, FormHelperText,
+  Autocomplete, TextField,
 } from '@mui/material';
 import { Sparkles, X, VolumeX, Coffee, Zap, User, Scissors, Check, Clock, CreditCard } from 'lucide-react';
 import { Appointment } from '../types';
+import { getSalonCustomersApi, type Customer } from '../../../services/api/customerService';
 
 interface Service {
   id: string;
@@ -22,6 +24,17 @@ interface Staff {
   avatar?: string;
 }
 
+export interface AppointmentFormInitialData {
+  customerId: string;
+  customerName: string;
+  serviceId: string;
+  serviceIds?: string[];
+  staffId: string;
+  date: string;
+  time: string;
+  notes?: string;
+}
+
 interface AppointmentFormProps {
   open: boolean;
   onClose: () => void;
@@ -32,15 +45,8 @@ interface AppointmentFormProps {
   isSubmitting?: boolean;
   services?: Service[];
   staff?: Staff[];
-  initialData: {
-    customerName: string;
-    serviceId: string;
-    serviceIds?: string[];
-    staffId: string;
-    date: string;
-    time: string;
-    notes?: string;
-  };
+  salonId?: string;
+  initialData: AppointmentFormInitialData;
 }
 
 // Generate the next 14 days for the Date Ribbon
@@ -66,9 +72,12 @@ const TIME_SLOTS = {
   EVENING: ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30']
 };
 
+const customerDisplayName = (c: Customer) =>
+  [c.first_name, c.last_name].filter(Boolean).join(' ').trim() || c.email || 'Customer';
+
 const AppointmentForm: React.FC<AppointmentFormProps> = ({
   open, onClose, editingApt, onSave, isDark, isMobile, isSubmitting = false,
-  services = [], staff = [], initialData
+  services = [], staff = [], salonId, initialData
 }) => {
   const [formData, setFormData] = useState({
     ...initialData,
@@ -76,7 +85,27 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   });
   const [vibe, setVibe] = useState<'zen' | 'social' | 'consult'>('zen');
   const [dateTimeError, setDateTimeError] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(false);
   const dateRibbon = useMemo(() => generateDateRibbon(), []);
+
+  const loadCustomers = useCallback(async () => {
+    if (!salonId) return;
+    setCustomersLoading(true);
+    try {
+      const res = await getSalonCustomersApi(salonId, { page: 1, limit: 200 });
+      const list = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+      setCustomers(Array.isArray(list) ? list : []);
+    } catch {
+      setCustomers([]);
+    } finally {
+      setCustomersLoading(false);
+    }
+  }, [salonId]);
+
+  useEffect(() => {
+    if (open && salonId) loadCustomers();
+  }, [open, salonId, loadCustomers]);
 
   useEffect(() => {
     if (open) {
@@ -172,7 +201,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           </Box>
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 900, color: 'white', fontSize: { xs: '1.5rem', md: '2rem' } }}>
-              {editingApt ? 'Govern' : 'Book'} <span style={{ color: '#EAB308' }}>Appointment</span>
+              {editingApt ? 'Edit' : 'Book'} <span style={{ color: '#EAB308' }}>appointment</span>
             </Typography>
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               Booking Details
@@ -188,17 +217,76 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
             <Stack spacing={4}>
               {/* Patron & Services Section */}
               <Box>
-                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.15em' }}>CLIENT & SERVICES</Typography>
+                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.15em' }}>Client & services</Typography>
                 <Stack spacing={2.5}>
-                  <Box sx={{ bgcolor: isDark ? '#161F33' : '#F8FAFC', borderRadius: '16px', px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1.5, border: '1px solid transparent', '&:focus-within': { borderColor: '#EAB308' } }}>
-                    <User size={18} color="#EAB308" />
-                    <InputBase
-                      fullWidth
+                  <Box sx={{ border: '1px solid transparent', borderRadius: '16px', '&:focus-within': { borderColor: '#EAB308' }, bgcolor: isDark ? '#161F33' : '#F8FAFC' }}>
+                    <Autocomplete
+                      freeSolo
+                      options={customers}
+                      getOptionLabel={(option) => typeof option === 'string' ? option : customerDisplayName(option)}
+                      value={formData.customerId ? customers.find((c) => c.id === formData.customerId) ?? formData.customerName : formData.customerName}
+                      onInputChange={(_, value) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          customerId: '',
+                          customerName: typeof value === 'string' ? value : (value ? customerDisplayName(value as Customer) : ''),
+                        }));
+                      }}
+                      onChange={(_, value) => {
+                        if (value && typeof value !== 'string') {
+                          setFormData((prev) => ({
+                            ...prev,
+                            customerId: value.id,
+                            customerName: customerDisplayName(value),
+                          }));
+                        } else if (typeof value === 'string') {
+                          setFormData((prev) => ({ ...prev, customerId: '', customerName: value }));
+                        }
+                      }}
+                      loading={customersLoading}
                       disabled={isSubmitting}
-                      placeholder="Enter Patron Identity..."
-                      value={formData.customerName}
-                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      sx={{ fontWeight: 700, fontSize: '14px', color: isDark ? 'white' : 'inherit' }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Search customer or enter new name..."
+                          size="small"
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              bgcolor: 'transparent',
+                              fontWeight: 700,
+                              fontSize: '14px',
+                              color: isDark ? 'white' : 'inherit',
+                              fieldset: { border: 'none' },
+                            },
+                          }}
+                          InputProps={{
+                            ...params.InputProps,
+                            startAdornment: (
+                              <>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                                  <User size={18} color="#EAB308" />
+                                </Box>
+                                {params.InputProps.startAdornment}
+                              </>
+                            ),
+                          }}
+                        />
+                      )}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.id}>
+                          <Stack direction="row" alignItems="center" spacing={1.5}>
+                            <Avatar sx={{ width: 32, height: 32, bgcolor: '#EAB308', color: '#050914', fontSize: '12px' }}>
+                              {customerDisplayName(option).charAt(0) || '?'}
+                            </Avatar>
+                            <Box>
+                              <Typography sx={{ fontWeight: 700 }}>{customerDisplayName(option)}</Typography>
+                              {option.email && (
+                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{option.email}</Typography>
+                              )}
+                            </Box>
+                          </Stack>
+                        </li>
+                      )}
                     />
                   </Box>
 
@@ -248,7 +336,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
               {/* Custom Date Ribbon */}
               <Box>
-                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.15em' }}>DATE</Typography>
+                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.15em' }}>Date</Typography>
                 <Stack direction="row" spacing={1.5} sx={{ overflowX: 'auto', pb: 1, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
                   {dateRibbon.map((date) => {
                     const isSelected = formData.date === date.full;
@@ -284,11 +372,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
               {/* Custom Time Grid */}
               <Box>
-                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.15em' }}>TIME SLOT</Typography>
+                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.15em' }}>Time</Typography>
                 <Box sx={{ maxHeight: 300, overflowY: 'auto', pr: 1 }}>
                   {Object.entries(TIME_SLOTS).map(([period, slots]) => (
                     <Box key={period} sx={{ mb: 3 }}>
-                      <Typography sx={{ fontSize: '9px', fontWeight: 900, color: '#64748B', mb: 1.5, letterSpacing: '0.1em' }}>{period}</Typography>
+                      <Typography sx={{ fontSize: '9px', fontWeight: 900, color: '#64748B', mb: 1.5, letterSpacing: '0.1em' }}>{period === 'MORNING' ? 'Morning' : period === 'AFTERNOON' ? 'Afternoon' : 'Evening'}</Typography>
                       <Grid2 container spacing={1}>
                         {slots.map((slot) => {
                           const isSelected = formData.time === slot;
@@ -324,7 +412,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
               {/* Select Artisan Gallery */}
               <Box>
-                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.15em' }}>SELECT ARTISAN ({staff.length} available)</Typography>
+                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.15em' }}>Select staff ({staff.length} available)</Typography>
                 <Stack direction="row" spacing={1.5} sx={{ overflowX: 'auto', pb: 1 }}>
                   {/* Anyone option */}
                   <Paper
@@ -355,7 +443,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                       </Box>
                       <Box sx={{ textAlign: 'center' }}>
                         <Typography sx={{ fontSize: '12px', fontWeight: 900 }}>Anyone</Typography>
-                        <Typography sx={{ fontSize: '9px', fontWeight: 700, color: '#94A3B8' }}>Auto Assign</Typography>
+                        <Typography sx={{ fontSize: '9px', fontWeight: 700, color: '#94A3B8' }}>Auto assign</Typography>
                       </Box>
                     </Stack>
                   </Paper>
@@ -391,7 +479,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
                           </Box>
                           <Box sx={{ textAlign: 'center' }}>
                             <Typography sx={{ fontSize: '12px', fontWeight: 900 }}>{member.name?.split(' ')[0]}</Typography>
-                            <Typography sx={{ fontSize: '9px', fontWeight: 700, color: '#94A3B8' }}>{member.role || 'Artisan'}</Typography>
+                            <Typography sx={{ fontSize: '9px', fontWeight: 700, color: '#94A3B8' }}>{member.role || 'Staff'}</Typography>
                           </Box>
                         </Stack>
                       </Paper>
@@ -405,13 +493,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           {/* Right Sidebar: Summary & Vibing */}
           <Grid2 size={{ xs: 12, md: 5 }}>
             <Stack spacing={3} sx={{ position: 'sticky', top: 0 }}>
-              <Box sx={{ p: 3, border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9'}`, borderRadius: '24px', bgcolor: isDark ? '#050914' : alpha('#F8FAFC', 0.5) }}>
-                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 3, letterSpacing: '0.15em' }}>PREFERENCES</Typography>
+              {/* Preferences (Quiet / Chat / Consultation) - hidden for now */}
+              <Box sx={{ display: 'none', p: 3, border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9'}`, borderRadius: '24px', bgcolor: isDark ? '#050914' : alpha('#F8FAFC', 0.5) }}>
+                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 3, letterSpacing: '0.15em' }}>Preferences</Typography>
                 <Stack spacing={1.5}>
                   {[
-                    { id: 'zen', icon: <VolumeX size={18} />, label: 'Zen Silence' },
-                    { id: 'social', icon: <Coffee size={18} />, label: 'Social Pulse' },
-                    { id: 'consult', icon: <Zap size={18} />, label: 'Consult' },
+                    { id: 'zen', icon: <VolumeX size={18} />, label: 'Quiet' },
+                    { id: 'social', icon: <Coffee size={18} />, label: 'Chat' },
+                    { id: 'consult', icon: <Zap size={18} />, label: 'Consultation' },
                   ].map((v) => (
                     <Paper
                       key={v.id}
@@ -434,7 +523,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
               </Box>
 
               <Box sx={{ p: 3, border: '1px solid #EAB308', borderRadius: '24px', bgcolor: isDark ? alpha('#EAB308', 0.02) : '#FEFDF0' }}>
-                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2.5, letterSpacing: '0.15em' }}>SUMMARY</Typography>
+                <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2.5, letterSpacing: '0.15em' }}>Summary</Typography>
                 <Stack spacing={2}>
                   <Stack direction="row" justifyContent="space-between">
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -453,7 +542,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
                   <Box sx={{ pt: 1, borderTop: '1px solid rgba(0,0,0,0.05)', mt: 1 }}>
                     <Typography variant="caption" sx={{ fontWeight: 800, color: '#64748B' }}>
-                      Selected window: {formData.date} at {formData.time}
+                      Selected: {formData.date} at {formData.time}
                     </Typography>
                   </Box>
                 </Stack>
@@ -464,7 +553,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 4, pb: 5, pt: 1, gap: 2, flexDirection: isMobile ? 'column' : 'row' }}>
-        <Button fullWidth variant="outlined" disabled={isSubmitting} onClick={onClose} sx={{ borderRadius: '16px', py: 2, fontWeight: 900, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider' }}>CANCEL</Button>
+        <Button fullWidth variant="outlined" disabled={isSubmitting} onClick={onClose} sx={{ borderRadius: '16px', py: 2, fontWeight: 900, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider' }}>Cancel</Button>
         <Button
           fullWidth variant="contained" disableElevation
           onClick={handleSave}
@@ -472,7 +561,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           sx={{ borderRadius: '16px', py: 2, bgcolor: isDark ? 'white' : '#0F172A', color: isDark ? '#050914' : 'white', fontWeight: 900, '&:disabled': { opacity: 0.5 } }}
         >
           {isSubmitting && <CircularProgress size={20} sx={{ mr: 1 }} />}
-          {editingApt ? 'UPDATE BOOKING' : 'BOOK APPOINTMENT'}
+          {editingApt ? 'Update booking' : 'Book appointment'}
         </Button>
       </DialogActions>
     </Dialog>

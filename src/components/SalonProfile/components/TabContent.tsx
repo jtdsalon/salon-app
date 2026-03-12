@@ -52,9 +52,9 @@ export const TabContent: React.FC<TabContentProps> = ({
   handleDeletePost,
 }) => {
   return (
-    <Box sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+    <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
       <Fade in={true}>
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           {activeTab === 0 && (
             <RitualMenuTab
               services={services}

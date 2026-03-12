@@ -248,9 +248,9 @@ const AccountSettings: React.FC = () => {
   const avatarDisplayUrl = avatarPreviewUrl ?? getFullImageUrl(userData.avatar) ?? undefined;
 
   return (
-    <Box sx={{ pb: 10 }} className="animate-fadeIn">
+    <Box sx={{ pb: 10, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }} className="animate-fadeIn">
       <Box sx={{ mb: 6 }}>
-        <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.04em', mb: 1 }}>
+        <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.04em', mb: 1, fontSize: { xs: '1.5rem', md: '2rem' } }}>
           Account <Box component="span" sx={{ color: '#EAB308' }}>Settings</Box>
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
@@ -264,14 +264,17 @@ const AccountSettings: React.FC = () => {
           onChange={handleTabChange} 
           textColor="primary"
           indicatorColor="primary"
+          variant="scrollable"
+          allowScrollButtonsMobile
+          scrollButtons="auto"
           sx={{
             '& .MuiTab-root': {
               fontWeight: 900,
               fontSize: '12px',
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              minWidth: 100,
-              mr: 2
+              minWidth: { xs: 80, sm: 100 },
+              mr: { xs: 1, sm: 2 }
             }
           }}
         >

@@ -34,7 +34,14 @@ const PostDetailView: React.FC = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const { user } = useAuthContext();
-  const feedPosts = useSelector((state: RootState) => state.feed.posts);
+  const feed = useSelector((state: RootState) => state.feed);
+  const feedPosts = useMemo(() => {
+    const byId = new Map<string, FeedPost>();
+    [...(feed.posts ?? []), ...(feed.favourites?.posts ?? []), ...(feed.public?.posts ?? [])].forEach((p) => {
+      if (p.id && !byId.has(p.id)) byId.set(p.id, p);
+    });
+    return Array.from(byId.values());
+  }, [feed.posts, feed.favourites?.posts, feed.public?.posts]);
 
   const actorPage = useMemo(
     () => user?.pages?.find((page) => page.salonId === user?.salonId),

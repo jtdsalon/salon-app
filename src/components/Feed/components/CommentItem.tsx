@@ -9,7 +9,7 @@ import {
   Tooltip,
   useTheme,
 } from '@mui/material';
-import { Sparkles, Pencil, Trash, Send, X } from 'lucide-react';
+import { Sparkles, Pencil, Trash, Send, X, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getFeedStrings } from '../properties';
 import { Comment } from '../types';
@@ -49,18 +49,23 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const s = getFeedStrings();
   const isOwnComment = currentUserId && comment.userId === currentUserId;
 
+  const avatarUrl = getFullImageUrl(comment.userAvatar) || comment.userAvatar || null;
+
   return (
     <Box sx={{ display: 'flex', gap: 1.5 }}>
       <Avatar
-        src={getFullImageUrl(comment.userAvatar) || comment.userAvatar}
+        src={avatarUrl || undefined}
         onClick={() => navigate(`/profile/${comment.userId}`)}
         sx={{
           width: 32,
           height: 32,
           border: `1px solid ${theme.palette.divider}`,
           cursor: 'pointer',
+          bgcolor: avatarUrl ? undefined : 'action.hover',
         }}
-      />
+      >
+        {!avatarUrl && <User size={16} strokeWidth={1.5} />}
+      </Avatar>
       <Box sx={{ flex: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.2 }}>
           <Stack direction="row" spacing={1} alignItems="center">

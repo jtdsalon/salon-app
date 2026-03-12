@@ -15,6 +15,7 @@ import {
   TableRow,
   Button,
   useTheme,
+  useMediaQuery,
   IconButton,
   Dialog,
   DialogTitle,
@@ -58,8 +59,10 @@ import {
   Ban
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import type { RootState } from '@/state/store';
 import { useStaff } from '@/state/staff';
+import { ROUTES } from '@/routes/routeConfig';
 import { Staff } from './types';
 
 function mapApiStaffToStaff(s: any): Staff {
@@ -84,6 +87,7 @@ function mapApiStaffToStaff(s: any): Staff {
 
 const StaffList: React.FC = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const salon = useSelector((state: RootState) => state.salon.salon);
   const salonId = salon?.id ?? null;
   const { staffList: staffListFromApi, loading, handleGetStaff, handleCreateStaff, handleUpdateStaff } = useStaff();
@@ -178,7 +182,7 @@ const StaffList: React.FC = () => {
   }
 
   return (
-    <Box sx={{ pb: 8 }} className="animate-fadeIn">
+    <Box sx={{ pb: 8, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }} className="animate-fadeIn">
       <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 6, gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ mb: 1, letterSpacing: '-0.04em', fontWeight: 900 }}>Artisan Collective</Typography>
@@ -187,31 +191,114 @@ const StaffList: React.FC = () => {
         <Button variant="contained" disableElevation onClick={() => handleOpenModal()} startIcon={<UserPlus size={20} />} sx={{ borderRadius: '100px', bgcolor: '#0F172A', px: 4, py: 1.5, fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: '#1E293B' } }}>Enroll Artisan</Button>
       </Stack>
 
-      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', overflow: 'hidden' }}>
-        <Table sx={{ minWidth: 1100 }}>
-          <TableHead sx={{ bgcolor: 'action.hover' }}><TableRow><TableCell sx={{ py: 3, fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>ARTISAN PROFILE</TableCell><TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>CONTACTS</TableCell><TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>STATUS</TableCell><TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>COMMISSION</TableCell><TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>PERFORMANCE</TableCell><TableCell align="right" sx={{ pr: 4, fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>ACTIONS</TableCell></TableRow></TableHead>
-          <TableBody>
-            {staffList.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} sx={{ py: 8, textAlign: 'center', color: 'text.secondary', fontWeight: 600 }}>
-                  No staff enrolled yet. Click &quot;Enroll Artisan&quot; to add your first team member.
-                </TableCell>
-              </TableRow>
-            ) : staffList.map((staff) => (
-              <TableRow key={staff.id} hover sx={{ transition: 'background-color 0.2s', opacity: staff.status === 'blocked' ? 0.6 : 1 }}>
-                <TableCell sx={{ py: 3 }}><Stack direction="row" spacing={2} alignItems="center"><Avatar src={staff.avatar} sx={{ width: 52, height: 52, border: '2px solid', borderColor: 'divider' }} /><Box><Typography sx={{ fontWeight: 800, fontSize: '14px' }}>{staff.name}</Typography><Typography sx={{ fontSize: '12px', color: 'text.secondary', fontWeight: 600 }}>{staff.role}</Typography></Box></Stack></TableCell>
-                <TableCell><Stack spacing={0.5}><Stack direction="row" spacing={1} alignItems="center"><Mail size={12} color={theme.palette.text.secondary} /><Typography sx={{ fontSize: '12px', fontWeight: 600 }}>{staff.email}</Typography></Stack><Stack direction="row" spacing={1} alignItems="center"><Phone size={12} color={theme.palette.text.secondary} /><Typography sx={{ fontSize: '12px', fontWeight: 500, color: 'text.secondary' }}>{staff.phone}</Typography></Stack></Stack></TableCell>
-                <TableCell>{getStatusChip(staff.status)}</TableCell>
-                <TableCell><Chip label={`${Math.round(staff.commissionRate * 100)}%`} size="small" sx={{ fontWeight: 900, borderRadius: '8px' }} /></TableCell>
-                <TableCell><Stack direction="row" spacing={1} alignItems="center"><Star size={14} fill={theme.palette.secondary.main} color={theme.palette.secondary.main} /><Typography sx={{ fontWeight: 800, fontSize: '14px' }}>{staff.rating}</Typography></Stack></TableCell>
-                <TableCell align="right" sx={{ pr: 3 }}><Stack direction="row" spacing={1} justifyContent="flex-end"><Tooltip title="Edit Dossier"><IconButton size="small" onClick={() => handleOpenModal(staff)}><Pencil size={18} /></IconButton></Tooltip><IconButton size="small"><ShieldCheck size={18} color={theme.palette.success.main} /></IconButton></Stack></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {isMobile ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {staffList.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: '24px',
+                border: '1.5px solid',
+                borderColor: 'divider',
+                py: 8,
+                px: 3,
+                textAlign: 'center',
+              }}
+            >
+              <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '14px', mb: 2 }}>
+                No staff enrolled yet.
+              </Typography>
+              <Button
+                variant="contained"
+                disableElevation
+                onClick={() => handleOpenModal()}
+                startIcon={<UserPlus size={20} />}
+                sx={{ borderRadius: '100px', bgcolor: '#0F172A', px: 4, py: 1.5, fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: '#1E293B' } }}
+              >
+                Add first staff member
+              </Button>
+            </Paper>
+          ) : (
+            staffList.map((staff) => (
+              <Paper
+                key={staff.id}
+                elevation={0}
+                sx={{
+                  borderRadius: '20px',
+                  border: '1.5px solid',
+                  borderColor: 'divider',
+                  p: 2,
+                  opacity: staff.status === 'blocked' ? 0.6 : 1,
+                }}
+              >
+                <Stack direction="row" spacing={2} alignItems="flex-start" justifyContent="space-between">
+                  <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                    <Avatar src={staff.avatar} sx={{ width: 48, height: 48, border: '2px solid', borderColor: 'divider', flexShrink: 0 }} />
+                    <Box sx={{ minWidth: 0 }} component="button" type="button" onClick={() => navigate(`${ROUTES.STAFF_PORTAL}/${staff.id}`)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: '14px', color: 'text.primary', '&:hover': { textDecoration: 'underline' } }}>{staff.name}</Typography>
+                      <Typography sx={{ fontSize: '12px', color: 'text.secondary', fontWeight: 600 }}>{staff.role}</Typography>
+                      <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 1 }}>
+                        {getStatusChip(staff.status)}
+                        <Chip label={`${Math.round(staff.commissionRate * 100)}%`} size="small" sx={{ fontWeight: 900, borderRadius: '8px' }} />
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Star size={12} fill={theme.palette.secondary.main} color={theme.palette.secondary.main} />
+                          <Typography sx={{ fontWeight: 700, fontSize: '12px' }}>{staff.rating}</Typography>
+                        </Stack>
+                      </Stack>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" spacing={0.5}>
+                    <IconButton size="small" onClick={() => handleOpenModal(staff)} aria-label="Edit">
+                      <Pencil size={18} />
+                    </IconButton>
+                    <IconButton size="small" aria-label="Verify">
+                      <ShieldCheck size={18} color={theme.palette.success.main} />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }} flexWrap="wrap">
+                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
+                    <Mail size={12} color={theme.palette.text.secondary} style={{ flexShrink: 0 }} />
+                    <Typography noWrap sx={{ fontSize: '11px', fontWeight: 600 }}>{staff.email}</Typography>
+                  </Stack>
+                  {staff.phone ? (
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Phone size={12} color={theme.palette.text.secondary} />
+                      <Typography sx={{ fontSize: '11px', color: 'text.secondary', fontWeight: 500 }}>{staff.phone}</Typography>
+                    </Stack>
+                  ) : null}
+                </Stack>
+              </Paper>
+            ))
+          )}
+        </Box>
+      ) : (
+        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: { xs: '24px', md: '40px' }, border: '1.5px solid', borderColor: 'divider', overflow: 'auto', overflowX: 'auto' }}>
+          <Table sx={{ minWidth: 800 }}>
+            <TableHead sx={{ bgcolor: 'action.hover' }}><TableRow><TableCell sx={{ py: 3, fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>ARTISAN PROFILE</TableCell><TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>CONTACTS</TableCell><TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>STATUS</TableCell><TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>COMMISSION</TableCell><TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>PERFORMANCE</TableCell><TableCell align="right" sx={{ pr: 4, fontWeight: 800, color: 'text.secondary', fontSize: '12px', letterSpacing: '0.1em' }}>ACTIONS</TableCell></TableRow></TableHead>
+            <TableBody>
+              {staffList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} sx={{ py: 8, textAlign: 'center', color: 'text.secondary', fontWeight: 600 }}>
+                    No staff enrolled yet. Click &quot;Enroll Artisan&quot; to add your first team member.
+                  </TableCell>
+                </TableRow>
+              ) : staffList.map((staff) => (
+                <TableRow key={staff.id} hover sx={{ transition: 'background-color 0.2s', opacity: staff.status === 'blocked' ? 0.6 : 1 }}>
+                  <TableCell sx={{ py: 3 }}><Stack direction="row" spacing={2} alignItems="center" component="button" type="button" onClick={() => navigate(`${ROUTES.STAFF_PORTAL}/${staff.id}`)} sx={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}><Avatar src={staff.avatar} sx={{ width: 52, height: 52, border: '2px solid', borderColor: 'divider' }} /><Box><Typography sx={{ fontWeight: 800, fontSize: '14px', color: 'text.primary', '&:hover': { textDecoration: 'underline' } }}>{staff.name}</Typography><Typography sx={{ fontSize: '12px', color: 'text.secondary', fontWeight: 600 }}>{staff.role}</Typography></Box></Stack></TableCell>
+                  <TableCell><Stack spacing={0.5}><Stack direction="row" spacing={1} alignItems="center"><Mail size={12} color={theme.palette.text.secondary} /><Typography sx={{ fontSize: '12px', fontWeight: 600 }}>{staff.email}</Typography></Stack><Stack direction="row" spacing={1} alignItems="center"><Phone size={12} color={theme.palette.text.secondary} /><Typography sx={{ fontSize: '12px', fontWeight: 500, color: 'text.secondary' }}>{staff.phone}</Typography></Stack></Stack></TableCell>
+                  <TableCell>{getStatusChip(staff.status)}</TableCell>
+                  <TableCell><Chip label={`${Math.round(staff.commissionRate * 100)}%`} size="small" sx={{ fontWeight: 900, borderRadius: '8px' }} /></TableCell>
+                  <TableCell><Stack direction="row" spacing={1} alignItems="center"><Star size={14} fill={theme.palette.secondary.main} color={theme.palette.secondary.main} /><Typography sx={{ fontWeight: 800, fontSize: '14px' }}>{staff.rating}</Typography></Stack></TableCell>
+                  <TableCell align="right" sx={{ pr: 3 }}><Stack direction="row" spacing={1} justifyContent="flex-end"><Tooltip title="Edit Dossier"><IconButton size="small" onClick={() => handleOpenModal(staff)}><Pencil size={18} /></IconButton></Tooltip><IconButton size="small"><ShieldCheck size={18} color={theme.palette.success.main} /></IconButton></Stack></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
-      <Dialog open={isModalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: '48px', p: 1 } }}>
+      <Dialog open={isModalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth fullScreen={isMobile} PaperProps={{ sx: { borderRadius: { xs: 0, md: '48px' }, p: 1 } }}>
         <DialogTitle sx={{ p: 4, pb: 2 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center"><Typography variant="h5" sx={{ fontWeight: 900 }}>{editingStaff ? 'Refine Artisan' : 'Enroll Artisan'}</Typography><IconButton onClick={handleCloseModal} size="small"><X size={20} /></IconButton></Stack>
           <Typography variant="body2" color="text.secondary">Provide the professional dossier for this aesthetic expert.</Typography>

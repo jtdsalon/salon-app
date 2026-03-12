@@ -8,6 +8,7 @@ import { hasSalonAccess } from '@/lib/utils/permission';
 import ProtectedLayout from './ProtectedLayout';
 import UnauthorizedPage from './UnauthorizedPage';
 import VerificationPage from './VerificationPage';
+import ResetPasswordPage from './ResetPasswordPage';
 import Apppp from '@/components/salon-user-UIs/Glow4/App';
 // Lazy-loaded for code splitting
 const LazyDashboard = lazy(() => import('./routePages').then((m) => ({ default: m.DashboardPage })));
@@ -72,6 +73,7 @@ const AppRoutes: React.FC = () => {
       {/* <Route path={ROUTES.LOGIN} element={<Apppp />} /> */}
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.VERIFICATION} element={<VerificationPage />} />
+      <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
       <Route path={ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
 
       {/* Protected routes with MainLayout */}
@@ -94,7 +96,7 @@ const AppRoutes: React.FC = () => {
         <Route path="checkout" element={<Suspense fallback={<LoadingFallback />}><LazyCheckout /></Suspense>} />
         <Route path="subscriptions" element={<Suspense fallback={<LoadingFallback />}><LazySubscription /></Suspense>} />
         <Route path="billing" element={<Suspense fallback={<LoadingFallback />}><LazyBilling /></Suspense>} />
-        <Route path="staff-portal" element={<Suspense fallback={<LoadingFallback />}><LazyStaffPortal /></Suspense>} />
+        <Route path="staff-portal/:staffId?" element={<Suspense fallback={<LoadingFallback />}><LazyStaffPortal /></Suspense>} />
                 <Route path="account-settings" element={<Suspense fallback={<LoadingFallback />}><LazyAccountSettings /></Suspense>} />
         <Route path="account-settings/activity" element={<Suspense fallback={<LoadingFallback />}><LazyAllActivity /></Suspense>} />
       </Route>
