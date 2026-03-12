@@ -17,6 +17,7 @@ import {
     Chip,
     Alert,
     CircularProgress,
+    useTheme,
 } from '@mui/material';
 import { User, Briefcase, Camera, Star, TrendingUp, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { RequiredIndicator } from '@/components/common/RequiredIndicator';
@@ -51,6 +52,8 @@ export const StaffModal: React.FC<StaffModalProps> = ({
     success = false,
     successMessage = '',
 }) => {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [showSuccess, setShowSuccess] = useState(false);
 
@@ -146,18 +149,29 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 sx: {
                     borderRadius: '48px',
                     p: 1,
-                    background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                    mt: 3,
                     overflow: 'hidden',
+                    ...(isDark
+                        ? {
+                            bgcolor: '#0B1224',
+                            backgroundImage: 'none',
+                            border: '1px solid',
+                            borderColor: 'rgba(255,255,255,0.08)',
+                            boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+                        }
+                        : {
+                            background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                        }),
                 }
             }}
         >
-            <DialogTitle sx={{ p: 4, pb: 2 }}>
+            <DialogTitle sx={{ p: 4, pb: 2, color: isDark ? 'white' : undefined }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Box>
                         <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
                             {isEditing ? 'Edit Staff' : 'Add Staff Member'}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{ color: isDark ? 'rgba(255,255,255,0.7)' : 'text.secondary' }}>
                             {isEditing
                                 ? 'Update staff member details'
                                 : 'Add a new staff member to your team'}
@@ -179,7 +193,7 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                 </Stack>
             </DialogTitle>
 
-            <DialogContent sx={{ px: 4, pt: 2, pb: 0 }}>
+            <DialogContent sx={{ px: 4, pt: 2, pb: 0, bgcolor: 'transparent', color: isDark ? 'white' : undefined }}>
                 <Stack spacing={3}>
                     {/* Success Message */}
                     {showSuccess && success && (
@@ -490,15 +504,22 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                                 />
                                 <TextField
                                     fullWidth
-                                    label="Phone"
+                                    label="Contact Number"
                                     value={staffFormData.phone || ''}
                                     onChange={(e) => handleFieldChange('phone', e.target.value)}
-                                    placeholder="+94 77 XXX XXXX"
+                                    placeholder="077 XXX XXXX"
                                     disabled={isLoading}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: '16px',
                                         }
+                                    }}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Typography component="span" variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>+94</Typography>
+                                            </InputAdornment>
+                                        ),
                                     }}
                                 />
                             </Stack>
@@ -532,32 +553,24 @@ export const StaffModal: React.FC<StaffModalProps> = ({
                     onClick={handleSaveClick}
                     disabled={isLoading}
                     sx={{
-                        borderRadius: '100px',
+                        borderRadius: '12px',
                         bgcolor: 'text.primary',
                         color: 'background.paper',
-                        py: 2,
+                        py: 1.5,
+                        fontSize: '11px',
                         fontWeight: 900,
-                        fontSize: '15px',
-                        letterSpacing: '0.02em',
+                        minHeight: 44,
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        '&:hover': {
-                            bgcolor: 'text.primary',
-                            opacity: 0.9,
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-                        },
-                        '&:disabled': {
-                            bgcolor: 'text.disabled',
-                            opacity: 0.5,
-                        }
+                        '&:hover': { bgcolor: 'text.primary', opacity: 0.9 },
+                        '&:disabled': { opacity: 0.5 },
                     }}
                 >
                     {isLoading && <CircularProgress size={20} sx={{ color: 'inherit' }} />}
                     {isLoading
                         ? (isEditing ? 'Updating...' : 'Enrolling...')
-                        : (isEditing ? 'Update Staff' : 'Add Staff Member')}
+                        : (isEditing ? 'Update staff' : 'Add staff member')}
                 </Button>
             </DialogActions>
         </Dialog>

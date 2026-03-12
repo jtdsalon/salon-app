@@ -64,8 +64,8 @@ const DayTimeline: React.FC<DayTimelineProps> = ({
   };
 
   const getStaffName = (staffId: string) => {
-    if (!staffId || staffId === 'anyone') return 'Any Artisan';
-    return staff.find(s => s.id === staffId)?.name || 'Artisan';
+    if (!staffId || staffId === 'anyone') return 'Any staff';
+    return staff.find(s => s.id === staffId)?.name || 'Staff';
   };
 
   return (

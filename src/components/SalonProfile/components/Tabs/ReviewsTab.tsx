@@ -445,7 +445,7 @@ export const ReviewsTab: React.FC<ReviewsTabProps> = ({
               startIcon={sendingReply ? null : <Send size={18} />}
               sx={{
                 mt: 4,
-                borderRadius: '100px',
+                borderRadius: '12px',
                 bgcolor: '#EAB308',
                 color: '#050914',
                 py: 1.8,

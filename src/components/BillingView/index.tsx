@@ -251,7 +251,7 @@ const BillingView: React.FC = () => {
   };
 
   return (
-    <Box sx={{ pb: 10 }} className="animate-fadeIn">
+    <Box sx={{ pb: 10, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }} className="animate-fadeIn">
       {/* Success Alert */}
       {success && (
         <Alert 
@@ -459,43 +459,74 @@ const BillingView: React.FC = () => {
                 </Box>
               ) : (
                 <>
-                  <TableContainer>
-                    <Table>
-                      <TableHead sx={{ bgcolor: isDark ? alpha('#FFFFFF', 0.02) : 'rgba(0,0,0,0.02)' }}>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px', pl: 4 }}>INVOICE ID</TableCell>
-                          <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px' }}>DATE</TableCell>
-                          <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px' }}>AMOUNT</TableCell>
-                          <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px' }}>PAYMENT METHOD</TableCell>
-                          <TableCell align="right" sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px', pr: 4 }}>ACTION</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {displayedInvoices.map((inv) => (
-                          <TableRow key={inv.id} hover sx={{ '&:last-child td': { border: 0 } }}>
-                            <TableCell sx={{ pl: 4, fontWeight: 800, fontSize: '13px' }}>{inv.id}</TableCell>
-                            <TableCell sx={{ fontSize: '13px', color: 'text.secondary', fontWeight: 700 }}>{inv.created_at}</TableCell>
-                            <TableCell sx={{ fontWeight: 900 }}>{formatCurrency(inv.amount)}</TableCell>
-                            <TableCell>
-                              <Stack direction="row" spacing={1} alignItems="center">
+                  {isMobile ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: 2, pb: 1 }}>
+                      {displayedInvoices.map((inv) => (
+                        <Paper
+                          key={inv.id}
+                          elevation={0}
+                          sx={{
+                            borderRadius: '20px',
+                            border: '1px solid',
+                            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'divider',
+                            p: 2,
+                          }}
+                        >
+                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                            <Box>
+                              <Typography sx={{ fontWeight: 800, fontSize: '12px', color: 'text.secondary' }}>{inv.id}</Typography>
+                              <Typography sx={{ fontSize: '13px', fontWeight: 700, mt: 0.5 }}>{inv.created_at}</Typography>
+                              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
                                 <CreditCard size={12} color="#94A3B8" />
                                 <Typography sx={{ fontSize: '12px', fontWeight: 700 }}>{inv.method}</Typography>
                               </Stack>
-                            </TableCell>
-                            <TableCell align="right" sx={{ pr: 3 }}>
-                              <Button 
-                                startIcon={<Download size={14} />}
-                                onClick={() => handleDownloadPDF(inv.id)}
-                                sx={{ fontWeight: 900, fontSize: '11px', color: '#EAB308', textTransform: 'none' }}
-                              >
-                                PDF
-                              </Button>
-                            </TableCell>
+                              <Typography sx={{ fontWeight: 900, fontSize: '16px', mt: 1 }}>{formatCurrency(inv.amount)}</Typography>
+                            </Box>
+                            <Button
+                              size="small"
+                              startIcon={<Download size={14} />}
+                              onClick={() => handleDownloadPDF(inv.id)}
+                              sx={{ fontWeight: 900, fontSize: '11px', color: '#EAB308', textTransform: 'none' }}
+                            >
+                              PDF
+                            </Button>
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </Box>
+                  ) : (
+                    <TableContainer>
+                      <Table>
+                        <TableHead sx={{ bgcolor: isDark ? alpha('#FFFFFF', 0.02) : 'rgba(0,0,0,0.02)' }}>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px', pl: 4 }}>INVOICE ID</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px' }}>DATE</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px' }}>AMOUNT</TableCell>
+                            <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px' }}>PAYMENT METHOD</TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px', pr: 4 }}>ACTION</TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                          {displayedInvoices.map((inv) => (
+                            <TableRow key={inv.id} hover sx={{ '&:last-child td': { border: 0 } }}>
+                              <TableCell sx={{ pl: 4, fontWeight: 800, fontSize: '13px' }}>{inv.id}</TableCell>
+                              <TableCell sx={{ fontSize: '13px', color: 'text.secondary', fontWeight: 700 }}>{inv.created_at}</TableCell>
+                              <TableCell sx={{ fontWeight: 900 }}>{formatCurrency(inv.amount)}</TableCell>
+                              <TableCell>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <CreditCard size={12} color="#94A3B8" />
+                                  <Typography sx={{ fontSize: '12px', fontWeight: 700 }}>{inv.method}</Typography>
+                                </Stack>
+                              </TableCell>
+                              <TableCell align="right" sx={{ pr: 3 }}>
+                                <Button startIcon={<Download size={14} />} onClick={() => handleDownloadPDF(inv.id)} sx={{ fontWeight: 900, fontSize: '11px', color: '#EAB308', textTransform: 'none' }}>PDF</Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
@@ -562,7 +593,7 @@ const BillingView: React.FC = () => {
                 variant="contained" 
                 disableElevation
                 sx={{ 
-                  borderRadius: '100px', 
+                  borderRadius: '12px', 
                   bgcolor: '#EAB308', 
                   color: '#050914', 
                   py: 1.5, 

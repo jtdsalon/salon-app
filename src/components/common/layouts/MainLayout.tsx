@@ -1,18 +1,27 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { ThemeProvider, createTheme, CssBaseline, Box, Fab } from '@mui/material';
-import { MessageSquare } from 'lucide-react';
+import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AppView } from '@/components/types';
 import { PATH_TO_APP_VIEW, ROUTES } from '@/routes/routeConfig';
 import { useSalonLayout } from './SalonLayoutContext';
 import { useAuthContext } from '@/state/auth';
 import TopNavbar from './TopNavbar';
-import CartDrawer from '@/components/CartDrawer';
 import SubscriptionBanner, { BannerType } from '../SubscriptionBanner';
 import OnboardingBanner, { OnboardingBannerType } from '../OnboardingBanner';
+import {
+  ACCENT_COLOR,
+  ACCENT_COLOR_DARK,
+  ACCENT_COLOR_HOVER,
+  PRIMARY_DARK,
+  BG_DARK,
+  SUCCESS_COLOR,
+  ERROR_COLOR,
+  TEXT_MUTED,
+  TEXT_MUTED_DARK,
+  ON_ACCENT,
+} from '@/lib/constants/theme';
 import { isSalonProfileComplete, MIN_SERVICES_REQUIRED } from '@/lib/onboarding';
-import { ACCENT_COLOR, ACCENT_COLOR_DARK, ACCENT_COLOR_RGBA } from '@/lib/constants/theme';
 import type { RootState } from '@/state/store';
 
 function getCurrentView(pathname: string): AppView {
@@ -23,7 +32,7 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthContext();
-  const { cart, mode, isFocusMode, isCartOpen, setIsCartOpen, handleUpdateCartQuantity, handleRemoveFromCart, handleCheckout } = useSalonLayout();
+  const { cart, mode, isFocusMode } = useSalonLayout();
 
   const salon = useSelector((state: RootState) => state.salon.salon);
   const serviceList = useSelector((state: RootState) => state.service.serviceList);
@@ -58,23 +67,22 @@ const MainLayout: React.FC = () => {
     }
   }, [salon, profileIncomplete, location.pathname, navigate]);
 
-  const theme = useMemo(
-    () =>
-      createTheme({
+  const theme = useMemo(() => {
+    return createTheme({
         palette: {
           mode,
-          primary: { main: mode === 'light' ? '#0F172A' : '#F8FAFC' },
+          primary: { main: mode === 'light' ? PRIMARY_DARK : '#F8FAFC' },
           secondary: { main: ACCENT_COLOR, dark: ACCENT_COLOR_DARK },
-          error: { main: '#F43F5E' },
+          error: { main: ERROR_COLOR },
           background: {
-            default: mode === 'light' ? '#fcfcfc' : '#020617',
-            paper: mode === 'light' ? '#ffffff' : '#0F172A',
+            default: mode === 'light' ? '#fcfcfc' : BG_DARK,
+            paper: mode === 'light' ? '#ffffff' : PRIMARY_DARK,
           },
           text: {
-            primary: mode === 'light' ? '#0F172A' : '#F1F5F9',
-            secondary: mode === 'light' ? '#64748B' : '#94A3B8',
+            primary: mode === 'light' ? PRIMARY_DARK : '#F1F5F9',
+            secondary: mode === 'light' ? TEXT_MUTED : TEXT_MUTED_DARK,
           },
-          success: { main: '#10B981' },
+          success: { main: SUCCESS_COLOR },
           divider: mode === 'light' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
           action: {
             selected: mode === 'light' ? 'rgba(15, 23, 42, 0.05)' : 'rgba(248, 250, 252, 0.05)',
@@ -93,8 +101,22 @@ const MainLayout: React.FC = () => {
               root: { backgroundImage: 'none' },
             },
           },
+          MuiButton: {
+            styleOverrides: {
+              containedSecondary: {
+                backgroundColor: ACCENT_COLOR,
+                color: ON_ACCENT,
+                fontWeight: 900,
+                '&:hover': {
+                  backgroundColor: ACCENT_COLOR_HOVER,
+                  color: ON_ACCENT,
+                },
+              },
+            },
+          },
         },
-      }),
+      });
+  },
     [mode]
   );
 
@@ -144,42 +166,12 @@ const MainLayout: React.FC = () => {
             transition: 'all 0.3s ease',
           }}
         >
-          <Box sx={{ maxWidth: isScheduleView ? 'none' : 1400, mx: 'auto', width: '100%', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ maxWidth: isScheduleView ? 'none' : 1400, mx: 'auto', width: '100%', minWidth: 0, overflowX: 'hidden', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <Outlet />
           </Box>
         </Box>
 
-        {(!isScheduleView || !isFocusMode) && (
-          <Fab
-            color="primary"
-            aria-label="chat"
-            onClick={() => navigate(ROUTES.CHAT)}
-            sx={{
-              position: 'fixed',
-              bottom: 40,
-              right: 40,
-              bgcolor: ACCENT_COLOR,
-              color: mode === 'dark' ? '#050914' : '#FFFFFF',
-              '&:hover': { bgcolor: ACCENT_COLOR_DARK },
-              width: 72,
-              height: 72,
-              boxShadow: `0 20px 40px ${ACCENT_COLOR_RGBA(0.2)}`,
-              zIndex: 1000,
-            }}
-          >
-            <MessageSquare size={32} strokeWidth={2.5} />
-          </Fab>
-        )}
       </Box>
-
-      <CartDrawer
-        open={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cart}
-        onUpdateQuantity={handleUpdateCartQuantity}
-        onRemove={handleRemoveFromCart}
-        onCheckout={handleCheckout}
-      />
     </ThemeProvider>
   );
 };

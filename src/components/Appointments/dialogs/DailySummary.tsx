@@ -39,7 +39,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
       <Box sx={{ bgcolor: isDark ? '#050914' : '#0F172A', p: 3, position: 'relative' }}>
         <IconButton onClick={onClose} sx={{ position: 'absolute', top: 12, right: 12, color: 'rgba(255,255,255,0.4)' }}><X size={24} /></IconButton>
         <Typography variant="h6" sx={{ color: 'white', fontWeight: 900, mb: 0.2 }}>{monthName} {viewDate.getDate()}</Typography>
-        <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}>Daily Summary • {dayAppointments.length} Rituals</Typography>
+        <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}>Daily summary • {dayAppointments.length} appointments</Typography>
       </Box>
       <DialogContent sx={{ p: 2 }}>
         <Stack spacing={1.5}>
@@ -54,7 +54,7 @@ const DailySummary: React.FC<DailySummaryProps> = ({
               </Stack>
               <ArrowRight size={18} color="#CBD5E1" />
             </Paper>
-          )) : <Typography align="center" sx={{ py: 4, fontWeight: 700, color: 'text.secondary' }}>Empty Vault.</Typography>}
+          )) : <Typography align="center" sx={{ py: 4, fontWeight: 700, color: 'text.secondary' }}>No appointments.</Typography>}
         </Stack>
       </DialogContent>
     </Dialog>

@@ -15,7 +15,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { FeedPost, Comment } from './types';
+import { FeedPost, Comment } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { useLayout } from '@/components/common/layouts/layoutContext';
 import { useAuthContext } from '@/state/auth';
@@ -28,9 +28,9 @@ import {
   CommentSection,
   FeedPostHeader,
   FeedPostImage,
-} from './components';
-import { LikesDialog } from './LikesDialog';
-import { getFeedStrings } from './properties';
+} from '../components';
+import { LikesDialog } from '../LikesDialog';
+import { getFeedStrings } from '../properties';
 import { getFullImageUrl } from '@/lib/util/imageUrl';
 
 interface FeedItemProps {
@@ -40,7 +40,6 @@ interface FeedItemProps {
   onEdit: (post: FeedPost) => void;
   onUpdate: (post: FeedPost) => void;
   onViewSalon?: (id: string) => void;
-  /** API-backed: when provided, uses API instead of local onUpdate */
   onToggleLike?: (postId: string) => void;
   onToggleSave?: (postId: string) => void;
   onAddComment?: (postId: string, comment: string) => void;
@@ -86,7 +85,6 @@ export const FeedItem: React.FC<FeedItemProps> = ({
     (post.userId === currentUserId || (!!actorPage?.pageId && post.userId === actorPage.pageId));
   const isSaved = post.isSaved ?? savedPosts.includes(post.id);
 
-  // Source of truth: post.isLiked from API/Redux (never local-only state)
   const isLiked = post.isLiked ?? false;
   const [showComments, setShowComments] = useState(false);
   const [likesDialogOpen, setLikesDialogOpen] = useState(false);
@@ -122,13 +120,9 @@ export const FeedItem: React.FC<FeedItemProps> = ({
       return;
     }
     if (isPage && post.userId) {
-      if (!followPageApi || !unfollowPageApi) {
-        return;
-      }
+      if (!followPageApi || !unfollowPageApi) return;
       try {
-        const res = isFavourited
-          ? await unfollowPageApi(post.userId)
-          : await followPageApi(post.userId);
+        const res = isFavourited ? await unfollowPageApi(post.userId) : await followPageApi(post.userId);
         const salonId = res?.data?.data?.salonId;
         if (salonId) toggleFavorite(salonId);
       } catch (err) {
@@ -137,26 +131,22 @@ export const FeedItem: React.FC<FeedItemProps> = ({
       return;
     }
     const targetUserId = post.userId;
-    const currentUserId = user?.id || (user as any)?.sub;
-    if (!currentUserId || currentUserId === targetUserId) return;
+    const uid = user?.id || (user as any)?.sub;
+    if (!uid || uid === targetUserId) return;
     try {
-      if (isFavourited) {
-        await unfollowUserApi(targetUserId);
-      } else {
-        await followUserApi(targetUserId);
-      }
+      if (isFavourited) await unfollowUserApi(targetUserId);
+      else await followUserApi(targetUserId);
       toggleFollowedUser(targetUserId);
     } catch (err: any) {
       const code = err?.response?.data?.code;
       const status = err?.response?.status;
       if ((code === 'USER_NOT_FOUND' || status === 404) && targetUserId && !isFavourited) {
         try {
-          if (!followPageApi) {
-            return;
+          if (followPageApi) {
+            const res = await followPageApi(targetUserId);
+            const salonId = res?.data?.data?.salonId;
+            if (salonId) toggleFavorite(salonId);
           }
-          const res = await followPageApi(targetUserId);
-          const salonId = res?.data?.data?.salonId;
-          if (salonId) toggleFavorite(salonId);
         } catch (pageErr) {
           console.error('Follow page fallback failed', pageErr);
         }
@@ -182,7 +172,6 @@ export const FeedItem: React.FC<FeedItemProps> = ({
   const confirmRepost = async () => {
     setRepostConfirmOpen(false);
     const captionParts = [`Reposted from ${post.userName}`, post.caption?.trim()].filter(Boolean);
-
     dispatch(
       createPost({
         content: captionParts.join('\n\n'),
@@ -193,30 +182,22 @@ export const FeedItem: React.FC<FeedItemProps> = ({
         parent_post_id: post.id,
       })
     );
-
-    onUpdate({
-      ...post,
-      repostsCount: (post.repostsCount ?? 0) + 1,
-    });
+    onUpdate({ ...post, repostsCount: (post.repostsCount ?? 0) + 1 });
   };
 
   const handleAddComment = () => {
     if (!newComment.trim() || !currentUser) return;
-
     if (onAddComment) {
       onAddComment(post.id, newComment.trim());
       setNewComment('');
       return;
     }
-
     const comment: Comment = {
       id: Math.random().toString(36).substr(2, 9),
       userId: currentUser.id || 'me',
       userName:
         currentUser.name ||
-        (currentUser.firstName
-          ? `${currentUser.firstName} ${currentUser.lastName}`
-          : s.common.anonymous),
+        (currentUser.firstName ? `${currentUser.firstName} ${currentUser.lastName}` : s.common.anonymous),
       userAvatar: getFullImageUrl(currentUser?.avatar) || undefined,
       userType: currentUser.type || 'user',
       text: newComment.trim(),
@@ -224,11 +205,7 @@ export const FeedItem: React.FC<FeedItemProps> = ({
       likes: 0,
       isLiked: false,
     };
-
-    onUpdate({
-      ...post,
-      comments: [comment, ...post.comments],
-    });
+    onUpdate({ ...post, comments: [comment, ...post.comments] });
     setNewComment('');
   };
 
@@ -237,17 +214,11 @@ export const FeedItem: React.FC<FeedItemProps> = ({
       onToggleCommentLike(post.id, commentId);
       return;
     }
-    const updatedComments = post.comments.map((c) => {
-      if (c.id === commentId) {
-        const isCurrentlyLiked = c.isLiked || false;
-        return {
-          ...c,
-          isLiked: !isCurrentlyLiked,
-          likes: c.likes + (isCurrentlyLiked ? -1 : 1),
-        };
-      }
-      return c;
-    });
+    const updatedComments = post.comments.map((c) =>
+      c.id === commentId
+        ? { ...c, isLiked: !c.isLiked, likes: c.likes + (c.isLiked ? -1 : 1) }
+        : c
+    );
     onUpdate({ ...post, comments: updatedComments });
   };
 
@@ -256,8 +227,7 @@ export const FeedItem: React.FC<FeedItemProps> = ({
       onDeleteComment(post.id, commentId);
       return;
     }
-    const updatedComments = post.comments.filter((c) => c.id !== commentId);
-    onUpdate({ ...post, comments: updatedComments });
+    onUpdate({ ...post, comments: post.comments.filter((c) => c.id !== commentId) });
   };
 
   const startEditing = (comment: Comment) => {
@@ -295,8 +265,9 @@ export const FeedItem: React.FC<FeedItemProps> = ({
         bgcolor: 'transparent',
         borderBottom: `1px solid ${theme.palette.divider}`,
         pb: 3,
-        maxWidth: 520,
+        maxWidth: { xs: '100%', sm: 520 },
         mx: 'auto',
+        width: '100%',
         transition: 'all 0.3s ease',
       }}
     >
@@ -323,7 +294,14 @@ export const FeedItem: React.FC<FeedItemProps> = ({
           likes={post.likes}
           isLiked={isLiked}
           onToggleGlow={handleToggleGlow}
-          onViewLikes={post.likes > 0 ? () => { setCommentLikesDialogCommentId(null); setLikesDialogOpen(true); } : undefined}
+          onViewLikes={
+            post.likes > 0
+              ? () => {
+                  setCommentLikesDialogCommentId(null);
+                  setLikesDialogOpen(true);
+                }
+              : undefined
+          }
           commentsCount={post.comments.length}
           showComments={showComments}
           onToggleComments={() => setShowComments(!showComments)}
@@ -365,15 +343,19 @@ export const FeedItem: React.FC<FeedItemProps> = ({
             onClick={() => navigate(`/post/${post.parentPost?.id}`)}
           >
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <Typography sx={{ fontSize: '12px', fontWeight: 800 }}>
-                {post.parentPost.userName}
-              </Typography>
+              <Typography sx={{ fontSize: '12px', fontWeight: 800 }}>{post.parentPost.userName}</Typography>
               <Typography sx={{ fontSize: '10px', color: 'text.secondary', opacity: 0.6 }}>
                 {post.parentPost.timeAgo}
               </Typography>
             </Stack>
             {post.parentPost.caption && (
-              <Typography sx={{ fontSize: '12px', color: 'text.secondary', mb: post.parentPost.image ? 1 : 0 }}>
+              <Typography
+                sx={{
+                  fontSize: '12px',
+                  color: 'text.secondary',
+                  mb: post.parentPost.image ? 1 : 0,
+                }}
+              >
                 {post.parentPost.caption}
               </Typography>
             )}
@@ -415,16 +397,10 @@ export const FeedItem: React.FC<FeedItemProps> = ({
         open={repostConfirmOpen}
         onClose={() => setRepostConfirmOpen(false)}
         PaperProps={{
-          sx: {
-            borderRadius: '24px',
-            backgroundImage: 'none',
-            maxWidth: '400px',
-          },
+          sx: { borderRadius: '24px', backgroundImage: 'none', maxWidth: '400px' },
         }}
       >
-        <DialogTitle sx={{ fontSize: '18px', fontWeight: 800, pb: 1 }}>
-          {s.repost.confirmTitle}
-        </DialogTitle>
+        <DialogTitle sx={{ fontSize: '18px', fontWeight: 800, pb: 1 }}>{s.repost.confirmTitle}</DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: '14px', color: 'text.secondary', fontWeight: 300 }}>
             {s.repost.confirmDescription}
@@ -433,12 +409,7 @@ export const FeedItem: React.FC<FeedItemProps> = ({
         <DialogActions sx={{ p: 2, pt: 1 }}>
           <Button
             onClick={() => setRepostConfirmOpen(false)}
-            sx={{
-              fontSize: '12px',
-              fontWeight: 800,
-              color: 'text.secondary',
-              '&:hover': { bgcolor: 'action.hover' },
-            }}
+            sx={{ fontSize: '12px', fontWeight: 800, color: 'text.secondary', '&:hover': { bgcolor: 'action.hover' } }}
           >
             {s.common.cancel.toUpperCase()}
           </Button>

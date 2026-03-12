@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Stack,
@@ -17,6 +18,8 @@ import {
     TableRow,
     TableCell,
     Avatar,
+    useTheme,
+    useMediaQuery,
 } from '@mui/material';
 import { Fade } from '@mui/material';
 import {
@@ -28,8 +31,8 @@ import {
     TrendingUp,
     Users,
 } from 'lucide-react';
+import { ROUTES } from '@/routes/routeConfig';
 import { Staff } from '../../types';
-
 interface ArtisansTabProps {
     staffList: Staff[];
     theme: any;
@@ -45,6 +48,9 @@ export const ArtisansTab: React.FC<ArtisansTabProps> = ({
     onDelete,
     onAdd,
 }) => {
+    const navigate = useNavigate();
+    const themeFromHook = useTheme();
+    const isMobile = useMediaQuery(themeFromHook.breakpoints.down('sm'));
     const calculateTotalRevenue = () => {
         return staffList.reduce((sum, member) => sum + member.monthlyRevenue, 0);
     };
@@ -66,7 +72,7 @@ export const ArtisansTab: React.FC<ArtisansTabProps> = ({
         <Fade in>
             <Box>
                 {/* Header Section */}
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={{ xs: 2, sm: 0 }} sx={{ mb: 4 }}>
                     <Box>
                         <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
                             Staff
@@ -78,21 +84,21 @@ export const ArtisansTab: React.FC<ArtisansTabProps> = ({
                     <Button
                         variant="contained"
                         disableElevation
-                        startIcon={<UserPlus size={18} />}
+                        startIcon={<UserPlus size={16} />}
                         onClick={onAdd}
                         sx={{
-                            borderRadius: '100px',
-                            bgcolor: 'secondary.main',
-                            color: 'white',
+                            borderRadius: '12px',
+                            bgcolor: 'text.primary',
+                            color: 'background.paper',
+                            fontSize: '11px',
                             fontWeight: 900,
-                            px: 3,
-                            '&:hover': {
-                                bgcolor: 'secondary.dark',
-                                transform: 'translateY(-1px)',
-                            }
+                            px: 2.5,
+                            py: 1.5,
+                            minHeight: 44,
+                            '&:hover': { bgcolor: 'text.primary', opacity: 0.9 },
                         }}
                     >
-                        Add Staff Member
+                        Add staff member
                     </Button>
                 </Stack>
 
@@ -246,7 +252,117 @@ export const ArtisansTab: React.FC<ArtisansTabProps> = ({
                     </Grid2>
                 </Grid2>
 
-                {/* Artisans Table */}
+                {/* Artisans Table (desktop) / Card list (mobile) */}
+                {isMobile ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {staffList.length === 0 ? (
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    borderRadius: '24px',
+                                    border: '1.5px solid',
+                                    borderColor: 'divider',
+                                    py: 8,
+                                    px: 3,
+                                    textAlign: 'center',
+                                }}
+                            >
+                                <Users size={48} color={theme.palette.divider} style={{ marginBottom: 16 }} />
+                                <Typography sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '14px', mb: 2 }}>
+                                    No staff members added yet
+                                </Typography>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<UserPlus size={16} />}
+                                    onClick={onAdd}
+                                    sx={{ borderRadius: '100px', borderColor: 'divider', fontWeight: 700 }}
+                                >
+                                    Add First Staff Member
+                                </Button>
+                            </Paper>
+                        ) : (
+                            staffList.map((member) => (
+                                <Paper
+                                    key={member.id}
+                                    elevation={0}
+                                    sx={{
+                                        borderRadius: '20px',
+                                        border: '1.5px solid',
+                                        borderColor: 'divider',
+                                        p: 2,
+                                    }}
+                                >
+                                    <Stack direction="row" spacing={2} alignItems="flex-start" justifyContent="space-between">
+                                        <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                                            <Avatar
+                                                src={member.avatar}
+                                                sx={{
+                                                    width: 48,
+                                                    height: 48,
+                                                    border: '2px solid',
+                                                    borderColor: 'divider',
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                            <Box sx={{ minWidth: 0 }} component="button" type="button" onClick={() => navigate(`${ROUTES.STAFF_PORTAL}/${member.id}`)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
+                                                <Typography sx={{ fontWeight: 800, fontSize: '14px', color: 'text.primary', '&:hover': { textDecoration: 'underline' } }}>{member.name}</Typography>
+                                                <Typography sx={{ fontSize: '11px', color: 'text.secondary', fontWeight: 600, fontFamily: 'monospace' }}>
+                                                    ID: ART-{member.id.split('-')[1]?.toUpperCase() || 'SYS'}
+                                                </Typography>
+                                                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                                                    <Briefcase size={12} color={theme.palette.text.secondary} />
+                                                    <Typography sx={{ fontWeight: 600, fontSize: '12px' }}>{member.role}</Typography>
+                                                </Stack>
+                                                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 1 }}>
+                                                    <Chip
+                                                        label={`${Math.round(member.commissionRate * 100)}%`}
+                                                        size="small"
+                                                        sx={{
+                                                            fontWeight: 900,
+                                                            fontSize: '10px',
+                                                            borderRadius: '8px',
+                                                            bgcolor: 'rgba(16, 185, 129, 0.05)',
+                                                            color: '#10B981',
+                                                            border: '1px solid',
+                                                            borderColor: 'divider',
+                                                        }}
+                                                    />
+                                                    <Chip
+                                                        label={member.status.toUpperCase()}
+                                                        size="small"
+                                                        sx={{
+                                                            fontWeight: 900,
+                                                            fontSize: '10px',
+                                                            borderRadius: '6px',
+                                                            letterSpacing: '0.05em',
+                                                            bgcolor: member.status === 'active' ? 'rgba(16, 185, 129, 0.1)' : member.status === 'on-leave' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(148, 163, 184, 0.1)',
+                                                            color: member.status === 'active' ? '#10B981' : member.status === 'on-leave' ? '#F59E0B' : '#64748B',
+                                                        }}
+                                                    />
+                                                    <Stack direction="row" spacing={0.5} alignItems="center">
+                                                        <Star size={12} fill={theme.palette.secondary.main} color={theme.palette.secondary.main} />
+                                                        <Typography sx={{ fontWeight: 700, fontSize: '12px' }}>{member.rating.toFixed(1)}</Typography>
+                                                    </Stack>
+                                                    <Typography sx={{ fontWeight: 600, fontSize: '12px', color: 'text.secondary' }}>
+                                                        Rs. {(member.monthlyRevenue / 1000).toFixed(1)}k
+                                                    </Typography>
+                                                </Stack>
+                                            </Box>
+                                        </Stack>
+                                        <Stack direction="row" spacing={0.5}>
+                                            <IconButton size="small" onClick={() => onEdit(member)} aria-label="Edit">
+                                                <Pencil size={16} />
+                                            </IconButton>
+                                            <IconButton size="small" onClick={() => onDelete(member.id)} aria-label="Delete" sx={{ color: 'text.secondary', '&:hover': { color: '#ef4444', bgcolor: 'rgba(239, 68, 68, 0.05)' } }}>
+                                                <Trash2 size={16} />
+                                            </IconButton>
+                                        </Stack>
+                                    </Stack>
+                                </Paper>
+                            ))
+                        )}
+                    </Box>
+                ) : (
                 <TableContainer component={Paper} elevation={0} sx={{
                     borderRadius: '40px',
                     border: '1.5px solid',
@@ -364,11 +480,13 @@ export const ArtisansTab: React.FC<ArtisansTabProps> = ({
                                                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                                                     }}
                                                 />
-                                                <Box>
+                                                <Box component="button" type="button" onClick={() => navigate(`${ROUTES.STAFF_PORTAL}/${member.id}`)} sx={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
                                                     <Typography sx={{
                                                         fontWeight: 800,
                                                         fontSize: '15px',
-                                                        letterSpacing: '-0.01em'
+                                                        letterSpacing: '-0.01em',
+                                                        color: 'text.primary',
+                                                        '&:hover': { textDecoration: 'underline' }
                                                     }}>
                                                         {member.name}
                                                     </Typography>
@@ -493,6 +611,7 @@ export const ArtisansTab: React.FC<ArtisansTabProps> = ({
                         </TableBody>
                     </Table>
                 </TableContainer>
+                )}
             </Box>
         </Fade>
     );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,6 +14,8 @@ import {
   Typography,
   Alert,
   CircularProgress,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { X, Sparkles, Clock, AlertCircle, CheckCircle, Upload } from 'lucide-react';
 
@@ -68,10 +70,17 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
   success = false,
   successMessage = '',
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [isProcessingImages, setIsProcessingImages] = useState(false);
+  const [saveInProgress, setSaveInProgress] = useState(false);
+  const saveInProgressRef = useRef(false);
+  const wasSaveLoadingRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   const isLoading = creating || updating || loading || isProcessingImages;
   const isEditing = !!editingService?.id;
@@ -87,18 +96,32 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
     const urls = images.map((img) => getPreviewUrl(img));
     setImagePreviewUrls(urls);
     return () => urls.forEach((u) => (u.startsWith('blob:') ? URL.revokeObjectURL(u) : null));
-  }, [open, editingService?.id, formImages?.length]);
+  }, [open, editingService?.id, formImages]);
 
   useEffect(() => {
     if (success && successMessage) {
-      setShowSuccess(true);
-      const timer = setTimeout(() => {
-        setShowSuccess(false);
-        onClose();
-      }, 2000);
-      return () => clearTimeout(timer);
+      onCloseRef.current();
     }
-  }, [success, successMessage, onClose]);
+  }, [success, successMessage]);
+
+  useEffect(() => {
+    if (!open) {
+      wasSaveLoadingRef.current = false;
+      saveInProgressRef.current = false;
+      setSaveInProgress(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (creating || updating) {
+      wasSaveLoadingRef.current = true;
+    }
+    if (!creating && !updating && wasSaveLoadingRef.current) {
+      wasSaveLoadingRef.current = false;
+      saveInProgressRef.current = false;
+      setSaveInProgress(false);
+    }
+  }, [creating, updating]);
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -132,7 +155,8 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
   const handleFieldChange = (field: string, value: any) => {
     const next = { ...serviceFormData, [field]: value };
     if (field === 'duration' || field === 'duration_minutes') {
-      const d = Number(value);
+      const isEmpty = value === '' || value === undefined || value === null;
+      const d = isEmpty ? undefined : Math.max(0, Number(value));
       next.duration = d;
       next.duration_minutes = d;
     }
@@ -205,7 +229,11 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
   };
 
   const handleSaveClick = () => {
-    if (validateForm()) onSave();
+    if (saveInProgressRef.current || isLoading || success) return;
+    if (!validateForm()) return;
+    saveInProgressRef.current = true;
+    setSaveInProgress(true);
+    onSave();
   };
 
   return (
@@ -214,27 +242,28 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      fullScreen={isMobile}
       PaperProps={{
         elevation: 0,
         sx: {
-          borderRadius: '48px',
-          p: 1,
+          borderRadius: isMobile ? 0 : '48px',
+          p: { xs: 0, sm: 1 },
           bgcolor: 'background.paper',
           backgroundImage: 'none',
-          border: '1px solid',
+          border: isMobile ? 'none' : '1px solid',
           borderColor: 'divider',
           overflow: 'hidden',
           color: 'text.primary',
         },
       }}
     >
-      <DialogTitle sx={{ p: 4, pb: 2 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
+      <DialogTitle sx={{ p: { xs: 2, sm: 4 }, pb: 2 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em', fontSize: { xs: '1.15rem', sm: '1.5rem' } }}>
               {isEditing ? 'Edit Service' : 'Add Service'}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: 'inherit' } }}>
               {isEditing ? 'Update the details of this service' : 'Add a new service to your salon menu'}
             </Typography>
           </Box>
@@ -248,7 +277,7 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
         </Stack>
       </DialogTitle>
 
-      <DialogContent sx={{ px: 4, pt: 2, pb: 0, maxHeight: '80vh', overflow: 'auto', overflowX: 'visible', color: 'text.primary' }}>
+      <DialogContent sx={{ px: { xs: 2, sm: 4 }, pt: 2, pb: 0, maxHeight: isMobile ? 'none' : '80vh', overflow: 'auto', overflowX: 'hidden', color: 'text.primary' }}>
         <Stack spacing={3} sx={{ pt: 0.5 }}>
           {showSuccess && success && (
             <Alert
@@ -323,15 +352,17 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
               disabled={isLoading}
               InputLabelProps={formLabelProps}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '20px' } }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    borderRadius: '16px',
-                    mt: 1.5,
-                    bgcolor: 'background.paper',
-                    backgroundImage: 'none',
-                    border: '1px solid',
-                    borderColor: 'divider',
+              SelectProps={{
+                MenuProps: {
+                  PaperProps: {
+                    sx: {
+                      borderRadius: '16px',
+                      mt: 1.5,
+                      bgcolor: 'background.paper',
+                      backgroundImage: 'none',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                    },
                   },
                 },
               }}
@@ -358,18 +389,27 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
             />
 
-            <Stack direction="row" spacing={2}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField
                 fullWidth
                 label={<>Price (LKR) <RequiredIndicator /></>}
                 type="number"
                 value={serviceFormData.price ?? ''}
-                onChange={(e) => handleFieldChange('price', Number(e.target.value))}
+                onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === '') {
+                  handleFieldChange('price', undefined);
+                } else {
+                  const num = Number(raw);
+                  handleFieldChange('price', Number.isNaN(num) ? undefined : Math.max(0, num));
+                }
+              }}
                 placeholder="e.g., 2500"
                 error={!!formErrors.price}
                 helperText={formErrors.price}
                 disabled={isLoading}
                 InputLabelProps={formLabelProps}
+                inputProps={{ min: 0 }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -384,12 +424,21 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
                 label={<>Duration (Min) <RequiredIndicator /></>}
                 type="number"
                 value={(serviceFormData.duration_minutes ?? serviceFormData.duration) ?? ''}
-                onChange={(e) => handleFieldChange('duration', Number(e.target.value))}
+                onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === '') {
+                  handleFieldChange('duration', undefined);
+                } else {
+                  const num = Number(raw);
+                  handleFieldChange('duration', Number.isNaN(num) ? undefined : Math.max(0, num));
+                }
+              }}
                 placeholder="e.g., 60"
                 error={!!formErrors.duration}
                 helperText={formErrors.duration}
                 disabled={isLoading}
                 InputLabelProps={formLabelProps}
+                inputProps={{ min: 0 }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start" sx={{ color: 'text.secondary' }}>
@@ -428,18 +477,24 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
                         size="small"
                         onClick={() => handleRemoveImage(index)}
                         disabled={isLoading}
+                        aria-label="Remove image"
                         sx={{
                           position: 'absolute',
-                          top: -8,
-                          right: -8,
-                          bgcolor: '#EF4444',
+                          top: 4,
+                          right: 4,
+                          bgcolor: 'rgba(239, 68, 68, 0.95)',
                           color: 'white',
-                          width: 24,
-                          height: 24,
+                          width: 28,
+                          height: 28,
+                          minWidth: 28,
+                          minHeight: 28,
+                          padding: 0,
+                          boxShadow: 1,
                           '&:hover': { bgcolor: '#DC2626' },
+                          '& .MuiIconButton-label': { display: 'flex', alignItems: 'center', justifyContent: 'center' },
                         }}
                       >
-                        <X size={14} />
+                        <X size={16} strokeWidth={2.5} />
                       </IconButton>
                     </Box>
                   ))}
@@ -481,20 +536,20 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ p: 4, pt: 2 }}>
+      <DialogActions sx={{ p: { xs: 2, sm: 4 }, pt: 2, px: { xs: 2, sm: 4 } }}>
         <Button
           fullWidth
           variant="contained"
           disableElevation
           onClick={handleSaveClick}
-          disabled={isLoading}
+          disabled={isLoading || saveInProgress}
           sx={{
-            borderRadius: '100px',
+            borderRadius: '12px',
             bgcolor: 'text.primary',
             color: 'background.paper',
-            py: 2,
+            py: { xs: 1.5, sm: 2 },
             fontWeight: 900,
-            fontSize: '15px',
+            fontSize: { xs: '13px', sm: '15px' },
             letterSpacing: '0.02em',
             display: 'flex',
             alignItems: 'center',

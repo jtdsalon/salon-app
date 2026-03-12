@@ -147,12 +147,14 @@ export function useAppointmentsAction({
           }
         })();
 
+    const displayName = (apt as any).customer_name
+      || (apt.user ? `${apt.user.first_name || ''} ${apt.user.last_name || ''}`.trim() : '')
+      || apt.salon?.name
+      || 'Customer';
     return {
       id: apt.id,
       customerId: apt.user_id || '',
-      customerName: apt.user
-        ? `${apt.user.first_name || ''} ${apt.user.last_name || ''}`.trim()
-        : apt.salon?.name || 'Customer',
+      customerName: displayName,
       serviceId: apt.service_id,
       serviceIds: apt.booking_services?.map((bs: any) => bs.service_id) || (apt.service_id ? [apt.service_id] : []),
       staffId: apt.staff_id || '',
@@ -295,6 +297,12 @@ export function useAppointmentsAction({
 
       if (formData.staffId) {
         payload.staff_id = formData.staffId;
+      }
+
+      if (formData.customerId) {
+        payload.user_id = formData.customerId;
+      } else if (formData.customerName?.trim()) {
+        payload.customer_name = formData.customerName.trim();
       }
 
       if (editingApt) {

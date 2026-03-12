@@ -4,6 +4,7 @@ import { HTTP_METHOD } from '../../lib/enums/httpData'
 import {
   GET_STAFF_URL,
   GET_STAFF_BY_ID_URL,
+  GET_STAFF_STATS_URL,
   CREATE_STAFF_URL,
   UPDATE_STAFF_URL,
   DELETE_STAFF_URL,
@@ -40,6 +41,21 @@ export function getStaffByIdApi(staffId: string): Promise<AxiosResponse<{ data: 
   return networkClient().request({
     method: HTTP_METHOD.GET,
     url: GET_STAFF_BY_ID_URL.replace('{id}', staffId),
+  })
+}
+
+export interface StaffStats {
+  totalBookings?: number
+  cancelledCount?: number
+  rebookingRate?: number | null
+  cancelRate?: number
+  onTimeRate?: number | null
+}
+
+export function getStaffStatsApi(staffId: string): Promise<AxiosResponse<{ data: StaffStats }>> {
+  return networkClient().request({
+    method: HTTP_METHOD.GET,
+    url: GET_STAFF_STATS_URL.replace('{id}', staffId),
   })
 }
 

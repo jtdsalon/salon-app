@@ -105,7 +105,7 @@ const VerificationVault: React.FC<VerificationVaultProps> = ({ open, onClose, em
           disabled={otp.join('').length < 6 || isSaving}
           sx={{ 
             py: 2, 
-            borderRadius: '100px', 
+            borderRadius: '12px', 
             bgcolor: isDark ? 'white' : '#0F172A', 
             color: isDark ? '#050914' : 'white', 
             fontWeight: 900 

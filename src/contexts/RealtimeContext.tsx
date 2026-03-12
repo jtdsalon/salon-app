@@ -1,16 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { getServerOrigin } from '@/config/api';
 
-/** Derive WebSocket server URL from API base URL (e.g. http://localhost:5000/api -> http://localhost:5000) */
-const getWsUrl = (): string => {
-  const base = (import.meta.env.VITE_APP_BASE_URL as string | undefined) || 'http://localhost:5000/api';
-  try {
-    const url = new URL(base);
-    return url.origin;
-  } catch {
-    return 'http://localhost:5000';
-  }
-};
+const getWsUrl = (): string => getServerOrigin() || (typeof window !== 'undefined' ? window.location.origin : '');
 
 export type RealtimeEvent = 'notification_new' | 'booking_updated' | 'feed_updated';
 

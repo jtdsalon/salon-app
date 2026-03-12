@@ -1,5 +1,8 @@
 import { AppView } from '@/components/types';
 
+/** Base path for the app (must match Vite base in vite.config). No trailing slash. */
+export const BASE_PATH = (import.meta.env.BASE_URL ?? '/salon-app/').replace(/\/+$/, '') || ''
+
 /** Canonical paths for salon app. Use these for navigation. */
 export const ROUTES = {
   LOGIN: '/login',
@@ -25,6 +28,7 @@ export const ROUTES = {
   ACCOUNT_SETTINGS_ACTIVITY: '/account-settings/activity',
   PROMOTIONS: '/promotions',
   POST_DETAIL: '/post/:id',
+  RESET_PASSWORD: '/auth/reset-password/:token',
 } as const;
 
 /** Map AppView to path for TopNavbar navigation */

@@ -141,17 +141,22 @@ const VacancyForm: React.FC<VacancyFormProps> = ({ open, onClose, onSave, editin
                 />
               </Grid2>
               <Grid2 size={{ xs: 12, md: 6 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', mb: 0.5, display: 'block' }}>PHONE (OPTIONAL)</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', mb: 0.5, display: 'block' }}>CONTACT NUMBER (OPTIONAL)</Typography>
                 <TextField 
                   fullWidth 
+                  label=""
                   error={!!errors.contactPhone}
                   helperText={errors.contactPhone}
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="077 XXX XXXX"
                   value={formData.contactPhone}
                   onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><Phone size={16} /></InputAdornment>
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Typography component="span" variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>+94</Typography>
+                      </InputAdornment>
+                    ),
                   }}
                   disabled={isLoading}
                 />

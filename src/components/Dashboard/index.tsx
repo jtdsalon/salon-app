@@ -51,6 +51,7 @@ import { useDashboardData } from './hooks/useDashboardData';
 import { generatePromoCaption } from '../../services/geminiService';
 import { AppView } from '@/components/types';
 import { ROUTES } from '@/routes/routeConfig';
+import { ACCENT_COLOR_HOVER, CARD_BG_DARK, ON_ACCENT } from '@/lib/constants/theme';
 
 interface DashboardProps {
   setView?: (view: AppView) => void;
@@ -167,7 +168,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
     ];
 
     return (
-      <Box sx={{ height: 320, width: '100%', mt: 4, position: 'relative' }}>
+      <Box sx={{ height: { xs: 260, sm: 300, md: 320 }, width: '100%', mt: { xs: 2, md: 4 }, position: 'relative' }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} />
@@ -193,15 +194,15 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
     const HOURS = ['9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM'];
     const HOUR_INDICES = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
     return (
-      <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', width: '100%', bgcolor: isDarkMode ? '#0B1224' : 'white' }}>
+      <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', width: '100%', bgcolor: isDarkMode ? CARD_BG_DARK : 'white' }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 900 }}>Stylist Utilization</Typography>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Visualizing daily activity cycles (today).</Typography>
           </Box>
         </Stack>
-        <Box sx={{ overflowX: 'auto' }}>
-          <Box sx={{ minWidth: 600 }}>
+        <Box sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+          <Box sx={{ minWidth: { xs: 280, sm: 400, md: 600 } }}>
             <Stack direction="row" sx={{ mb: 2, pl: '150px' }}>
               {HOURS.map(h => <Typography key={h} sx={{ flex: 1, textAlign: 'center', fontSize: '9px', fontWeight: 900, color: 'text.secondary' }}>{h}</Typography>)}
             </Stack>
@@ -268,28 +269,28 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
   }
 
   return (
-    <Box sx={{ pb: 10 }} className="animate-fadeIn">
+    <Box sx={{ pb: 10, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }} className="animate-fadeIn">
       {error && (
         <Alert severity="error" onClose={() => refetch()} sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
       {/* Header */}
-      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={3} sx={{ mb: 6 }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', md: 'center' }} spacing={3} sx={{ mb: 6 }}>
         <Box>
-          <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.04em', mb: 1 }}>
-            Salon <Box component="span" sx={{ color: '#EAB308' }}>Dashboard</Box>
+          <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.04em', mb: 1, fontSize: { xs: '1.75rem', sm: '2rem', md: '3rem' } }}>
+            Salon <Box component="span" sx={{ color: 'secondary.main' }}>Dashboard</Box>
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center">
-            <Box sx={{ width: 8, height: 8, bgcolor: stats ? '#10B981' : '#94A3B8', borderRadius: '50%', boxShadow: stats ? '0 0 8px #10B981' : 'none' }} />
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            <Box sx={(t) => ({ width: 8, height: 8, bgcolor: stats ? 'success.main' : 'text.secondary', borderRadius: '50%', boxShadow: stats ? `0 0 8px ${t.palette.success.main}` : 'none' })} />
+            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: { xs: '0.8rem', sm: 'inherit' } }}>
               {stats ? 'System online. Live data from backend.' : 'Connect your salon to see live stats.'}
             </Typography>
           </Stack>
         </Box>
-        <Stack direction="row" spacing={2}>
-          <Button variant="outlined" onClick={() => handleNavigate(AppView.DEMAND_FORECAST)} startIcon={<BrainCircuit size={18} />} sx={{ borderRadius: '100px', px: 3, fontWeight: 800 }}>Demand Forecast</Button>
-          <Button variant="contained" onClick={() => setIsCampaignForgeOpen(true)} startIcon={<Sparkles size={18} />} sx={{ borderRadius: '100px', px: 3, bgcolor: '#EAB308', color: '#050914', fontWeight: 800, '&:hover': { bgcolor: '#FACC15' } }}>Campaign Forge</Button>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: { xs: '100%', md: 'auto' } }}>
+          <Button fullWidth={isMobile} variant="outlined" onClick={() => handleNavigate(AppView.DEMAND_FORECAST)} startIcon={<BrainCircuit size={18} />} sx={{ borderRadius: '100px', px: 3, fontWeight: 800 }}>Demand Forecast</Button>
+          <Button fullWidth={isMobile} variant="contained" color="secondary" onClick={() => setIsCampaignForgeOpen(true)} startIcon={<Sparkles size={18} />} sx={{ borderRadius: '100px', px: 3, color: ON_ACCENT, fontWeight: 800, '&:hover': { bgcolor: ACCENT_COLOR_HOVER } }}>Campaign Forge</Button>
         </Stack>
       </Stack>
 
@@ -297,7 +298,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
       <Grid2 container spacing={3} sx={{ mb: 6 }}>
         {statsCards.map((stat) => (
           <Grid2 key={stat.label} size={{ xs: 12, sm: 6, md: 3 }}>
-            <Paper elevation={0} sx={{ p: 4, borderRadius: '32px', border: '1.5px solid', borderColor: 'divider', bgcolor: isDarkMode ? '#0B1224' : 'white' }}>
+            <Paper elevation={0} sx={{ p: { xs: 2.5, md: 4 }, borderRadius: { xs: '24px', md: '32px' }, border: '1.5px solid', borderColor: 'divider', bgcolor: isDarkMode ? CARD_BG_DARK : 'white' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
                 <Box sx={{ p: 1.2, borderRadius: '12px', bgcolor: alpha(stat.color, 0.1), color: stat.color }}>{stat.icon}</Box>
                 <Chip label={stat.trend} size="small" sx={{ fontWeight: 900, fontSize: '10px', bgcolor: alpha(stat.color, 0.05), color: stat.color }} />
@@ -314,8 +315,8 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
         <Grid2 size={{ xs: 12, lg: 8 }}>
           <Stack spacing={4}>
             {/* Revenue Momentum */}
-            <Paper elevation={0} sx={{ p: 5, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', bgcolor: isDarkMode ? '#0B1224' : 'white' }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+            <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, borderRadius: { xs: '24px', md: '40px' }, border: '1.5px solid', borderColor: 'divider', bgcolor: isDarkMode ? CARD_BG_DARK : 'white' }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2} sx={{ mb: { xs: 2, md: 4 } }}>
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 900 }}>Financial Momentum</Typography>
                   <Typography variant="body2" color="text.secondary">Daily income vs. performance targets.</Typography>
@@ -336,7 +337,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
         <Grid2 size={{ xs: 12, lg: 4 }}>
           <Stack spacing={4}>
             {/* Account & Usage Summary (from FinancialVault) */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', bgcolor: isDarkMode ? '#0B1224' : 'white' }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', bgcolor: isDarkMode ? CARD_BG_DARK : 'white' }}>
               <Typography variant="h6" sx={{ fontWeight: 900, mb: 3 }}>Cycle Utilization</Typography>
               <Stack spacing={4}>
                 <Box>
@@ -375,7 +376,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
             </Paper>
 
             {/* Mini Billing History (from FinancialVault) */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', bgcolor: isDarkMode ? '#0B1224' : 'white', overflow: 'hidden' }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: '40px', border: '1.5px solid', borderColor: 'divider', bgcolor: isDarkMode ? CARD_BG_DARK : 'white', overflow: 'hidden' }}>
               <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
                 <Receipt size={20} color="#EAB308" />
                 <Typography sx={{ fontWeight: 900 }}>Recent Invoices</Typography>
@@ -403,7 +404,8 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
         onClose={() => setIsCampaignForgeOpen(false)} 
         maxWidth="sm" 
         fullWidth
-        PaperProps={{ sx: { borderRadius: '32px', bgcolor: isDarkMode ? '#0B1224' : 'white', backgroundImage: 'none' } }}
+        fullScreen={isMobile}
+        PaperProps={{ sx: { borderRadius: { xs: 0, sm: '32px' }, bgcolor: isDarkMode ? CARD_BG_DARK : 'white', backgroundImage: 'none' } }}
       >
         <DialogTitle sx={{ p: 4, pb: 1 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">

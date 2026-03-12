@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Box, Typography, Avatar, Stack, IconButton, InputBase } from '@mui/material';
 import { getFeedStrings } from '../properties';
-import { Send } from 'lucide-react';
+import { Send, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { getFullImageUrl } from '@/lib/util/imageUrl';
@@ -140,7 +140,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
     <Box sx={{ mt: 2, pt: 1 }}>
       <Stack direction="row" spacing={1.5} alignItems="flex-end" sx={{ pb: 1 }}>
         <Avatar
-          src={getFullImageUrl(currentUser.avatar) || undefined}
+          src={getFullImageUrl(currentUser.avatar) || currentUser.avatar || undefined}
           onClick={() => navigate('/profile')}
           sx={{
             width: 32,
@@ -148,8 +148,11 @@ export const CommentInput: React.FC<CommentInputProps> = ({
             mb: 0.5,
             border: `1px solid ${theme.palette.divider}`,
             cursor: 'pointer',
+            bgcolor: !(getFullImageUrl(currentUser.avatar) || currentUser.avatar) ? 'action.hover' : undefined,
           }}
-        />
+        >
+          {!(getFullImageUrl(currentUser.avatar) || currentUser.avatar) && <User size={16} strokeWidth={1.5} />}
+        </Avatar>
         <Box sx={{ flex: 1, position: 'relative' }}>
           <MentionSuggestionDropdown
             users={suggestions}

@@ -1,6 +1,13 @@
 export * from './types'
 export { feedReducer } from './reducer'
-export { getFeedPosts, getFeedPostsSaga } from './getFeedPosts'
+export {
+  getFeedPosts,
+  getFeedPostsSaga,
+  getFavouritesFeedPosts,
+  getFavouritesFeedPostsSaga,
+  getPublicFeedPosts,
+  getPublicFeedPostsSaga,
+} from './getFeedPosts'
 export { createPost, createPostSaga } from './createPost'
 export {
   deletePost,

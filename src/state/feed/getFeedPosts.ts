@@ -1,9 +1,16 @@
 import { call, put, select } from 'redux-saga/effects'
 import * as T from './types'
 import type { FeedPost } from '../../components/Feed/types'
-import { getFeedPostsApi, mapApiPostToFeedPost } from '../../services/api/feedService'
+import {
+  getFeedPostsApi,
+  getFavouritesFeedPostsApi,
+  getPublicFeedPostsApi,
+  mapApiPostToFeedPost,
+} from '../../services/api/feedService'
 import { HTTP_CODE } from '../../lib/enums/httpData'
 import { selectUser } from '../auth/auth.selectors'
+
+const LIMIT = 20
 
 /** @param meta.silent - when true, does not set loading (avoids unmounting feed on like/comment) */
 export const getFeedPosts = (meta?: { silent?: boolean }) => ({
@@ -21,6 +28,7 @@ const getFeedPostsError = (payload: any) => ({
   payload,
 })
 
+/** Used e.g. for Insights tab; passes actorPageId for salon context. */
 export function* getFeedPostsSaga(): Generator<any, void, any> {
   try {
     const user: { salonId?: string; pages?: { salonId: string; pageId: string }[] } | null = yield select(selectUser)
@@ -28,12 +36,74 @@ export function* getFeedPostsSaga(): Generator<any, void, any> {
     const response: any = yield call(getFeedPostsApi, 1, 50, actorPageId)
     if (response?.status === HTTP_CODE.OK || response?.status === HTTP_CODE.CREATED) {
       const raw = response?.data?.data ?? []
-      const data = Array.isArray(raw) ? raw.map((p: any) => p?.id ? mapApiPostToFeedPost(p) : p) : []
+      const data = Array.isArray(raw) ? raw.map((p: any) => (p?.id ? mapApiPostToFeedPost(p) : p)) : []
       yield put(getFeedPostsSuccess(data))
     } else {
       yield put(getFeedPostsError(response))
     }
   } catch (err) {
     yield put(getFeedPostsError(err))
+  }
+}
+
+/** Favourites feed: own + followed salons/pages + followed users. Server-side pagination. */
+export const getFavouritesFeedPosts = (payload?: { page?: number; limit?: number; silent?: boolean }) => ({
+  type: T.GET_FAVOURITES_FEED_POSTS,
+  payload,
+})
+
+export function* getFavouritesFeedPostsSaga(action: {
+  type: string
+  payload?: { page?: number; limit?: number; silent?: boolean }
+}): Generator<any, void, any> {
+  const page = action.payload?.page ?? 1
+  const limit = action.payload?.limit ?? LIMIT
+  const append = page > 1
+  try {
+    const response: any = yield call(getFavouritesFeedPostsApi, page, limit)
+    if (response?.status === HTTP_CODE.OK || response?.status === HTTP_CODE.CREATED) {
+      const raw = response?.data?.data ?? []
+      const data = Array.isArray(raw) ? raw.map((p: any) => (p?.id ? mapApiPostToFeedPost(p) : p)) : []
+      const total = response?.data?.pagination?.total ?? data.length
+      yield put({
+        type: T.GET_FAVOURITES_FEED_POSTS_SUCCESS,
+        payload: { data, page, total, append },
+      })
+    } else {
+      yield put({ type: T.GET_FAVOURITES_FEED_POSTS_ERROR, payload: response })
+    }
+  } catch (err) {
+    yield put({ type: T.GET_FAVOURITES_FEED_POSTS_ERROR, payload: err })
+  }
+}
+
+/** Public (Discover) feed: posts not from favourites. Server-side pagination. */
+export const getPublicFeedPosts = (payload?: { page?: number; limit?: number; silent?: boolean }) => ({
+  type: T.GET_PUBLIC_FEED_POSTS,
+  payload,
+})
+
+export function* getPublicFeedPostsSaga(action: {
+  type: string
+  payload?: { page?: number; limit?: number; silent?: boolean }
+}): Generator<any, void, any> {
+  const page = action.payload?.page ?? 1
+  const limit = action.payload?.limit ?? LIMIT
+  const append = page > 1
+  try {
+    const response: any = yield call(getPublicFeedPostsApi, page, limit)
+    if (response?.status === HTTP_CODE.OK || response?.status === HTTP_CODE.CREATED) {
+      const raw = response?.data?.data ?? []
+      const data = Array.isArray(raw) ? raw.map((p: any) => (p?.id ? mapApiPostToFeedPost(p) : p)) : []
+      const total = response?.data?.pagination?.total ?? data.length
+      yield put({
+        type: T.GET_PUBLIC_FEED_POSTS_SUCCESS,
+        payload: { data, page, total, append },
+      })
+    } else {
+      yield put({ type: T.GET_PUBLIC_FEED_POSTS_ERROR, payload: response })
+    }
+  } catch (err) {
+    yield put({ type: T.GET_PUBLIC_FEED_POSTS_ERROR, payload: err })
   }
 }

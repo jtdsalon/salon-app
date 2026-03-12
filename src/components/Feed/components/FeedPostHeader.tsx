@@ -10,7 +10,7 @@ import {
   Stack,
   useTheme,
 } from '@mui/material';
-import { MoreVertical, Pencil, Trash, Share2, BadgeCheck } from 'lucide-react';
+import { MoreVertical, Pencil, Trash, Share2, BadgeCheck, User } from 'lucide-react';
 import { FeedPost } from '../types';
 import { getFeedStrings } from '../properties';
 import { getFullImageUrl } from '@/lib/util/imageUrl';
@@ -40,12 +40,13 @@ export const FeedPostHeader: React.FC<FeedPostHeaderProps> = ({
   const s = getFeedStrings();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const isSalonOrPage = post.userType === 'salon' || post.userType === 'page';
+  const avatarUrl = getFullImageUrl(post.userAvatar) || post.userAvatar || null;
 
   return (
     <CardHeader
       avatar={
         <Avatar
-          src={getFullImageUrl(post.userAvatar) || post.userAvatar}
+          src={avatarUrl || undefined}
           onClick={onHeaderClick}
           sx={{
             width: 38,
@@ -58,8 +59,11 @@ export const FeedPostHeader: React.FC<FeedPostHeaderProps> = ({
             border: '1px solid',
             borderColor: 'divider',
             cursor: 'pointer',
+            bgcolor: avatarUrl ? undefined : 'action.hover',
           }}
-        />
+        >
+          {!avatarUrl && <User size={20} strokeWidth={1.5} />}
+        </Avatar>
       }
       title={
         <Stack direction="row" spacing={1} alignItems="center">

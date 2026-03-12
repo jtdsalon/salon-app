@@ -10,7 +10,6 @@ import {
   Tooltip,
   Divider,
   Fade,
-  useTheme,
 } from '@mui/material';
 import { Plus, Pencil, Trash2, Clock, Sparkles } from 'lucide-react';
 import { ServiceMenuCategories } from './constants';
@@ -31,7 +30,6 @@ export const ServiceMenuView: React.FC<ServiceMenuViewProps> = ({
   onDelete,
   onAdd,
 }) => {
-  const theme = useTheme();
   const groupedServices = useMemo(() => {
     if (!services?.length) return {} as Record<string, ServiceMenuItem[]>;
     return services.reduce((acc: Record<string, ServiceMenuItem[]>, service) => {
@@ -44,35 +42,46 @@ export const ServiceMenuView: React.FC<ServiceMenuViewProps> = ({
 
   return (
     <Fade in>
-      <Box>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
+      <Box sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={{ xs: 2, sm: 0 }}
+          sx={{ mb: { xs: 3, md: 4 } }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em', fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
               Service Menu
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: 'inherit' } }}>
               Define the services offered at this salon.
             </Typography>
           </Box>
           <Button
             variant="contained"
+            color="secondary"
             disableElevation
-            startIcon={<Plus size={18} />}
+            startIcon={<Plus size={16} />}
             onClick={onAdd}
             sx={{
-              borderRadius: '100px',
-              bgcolor: 'secondary.main',
-              color: 'white',
+              borderRadius: '12px',
+              bgcolor: 'text.primary',
+              color: 'background.paper',
+              fontSize: '11px',
               fontWeight: 900,
-              px: 3,
-              '&:hover': { bgcolor: 'secondary.dark' },
+              px: 2.5,
+              py: 1.5,
+              minHeight: 44,
+              flexShrink: 0,
+              '&:hover': { bgcolor: 'text.primary', opacity: 0.9 },
             }}
           >
-            Add Service
+            Add service
           </Button>
         </Stack>
 
-        <Grid container spacing={4}>
+        <Grid container spacing={{ xs: 2, md: 4 }}>
           {ServiceMenuCategories.map(
             (cat) =>
               groupedServices[cat]?.length > 0 && (
@@ -80,8 +89,8 @@ export const ServiceMenuView: React.FC<ServiceMenuViewProps> = ({
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 4,
-                      borderRadius: '32px',
+                      p: { xs: 2.5, md: 4 },
+                      borderRadius: { xs: '20px', md: '32px' },
                       border: '1.5px solid',
                       borderColor: 'divider',
                       height: '100%',
@@ -93,28 +102,29 @@ export const ServiceMenuView: React.FC<ServiceMenuViewProps> = ({
                         fontWeight: 900,
                         color: 'text.secondary',
                         letterSpacing: '0.2em',
-                        mb: 3,
+                        mb: { xs: 2, md: 3 },
                       }}
                     >
                       {cat.toUpperCase()}
                     </Typography>
 
-                    <Stack spacing={4}>
+                    <Stack spacing={{ xs: 3, md: 4 }}>
                       {groupedServices[cat].map((service) => (
                         <Stack
                           key={service.id}
-                          direction="row"
+                          direction={{ xs: 'column', sm: 'row' }}
                           justifyContent="space-between"
-                          alignItems="center"
+                          alignItems={{ xs: 'flex-start', sm: 'center' }}
+                          spacing={{ xs: 1, sm: 0 }}
                         >
-                          <Box sx={{ flex: 1 }}>
-                            <Typography sx={{ fontWeight: 800, fontSize: '15px', mb: 0.5 }}>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography sx={{ fontWeight: 800, fontSize: { xs: '14px', md: '15px' }, mb: 0.5 }}>
                               {service.name}
                             </Typography>
 
-                            <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
                               <Stack direction="row" spacing={0.5} alignItems="center">
-                                <Clock size={12} color={theme?.palette?.text?.secondary ?? '#64748B'} />
+                                <Clock size={12} color={_themeProp?.palette?.text?.secondary ?? '#64748B'} />
                                 <Typography
                                   variant="caption"
                                   sx={{ color: 'text.secondary', fontWeight: 600 }}
@@ -125,7 +135,7 @@ export const ServiceMenuView: React.FC<ServiceMenuViewProps> = ({
 
                               {(service.popularity ?? 0) > 0 && (
                                 <Stack direction="row" spacing={0.5} alignItems="center">
-                                  <Sparkles size={12} color={theme?.palette?.secondary?.main ?? '#B59410'} />
+                                  <Sparkles size={12} color={_themeProp?.palette?.secondary?.main ?? '#B59410'} />
                                   <Typography
                                     variant="caption"
                                     sx={{ color: 'text.secondary', fontWeight: 600 }}
@@ -137,15 +147,15 @@ export const ServiceMenuView: React.FC<ServiceMenuViewProps> = ({
                             </Stack>
                           </Box>
 
-                          <Stack direction="row" spacing={2} alignItems="center">
-                            <Typography sx={{ fontWeight: 900, fontSize: '16px' }}>
+                          <Stack direction="row" spacing={{ xs: 1, sm: 2 }} alignItems="center" sx={{ flexShrink: 0 }}>
+                            <Typography sx={{ fontWeight: 900, fontSize: { xs: '14px', md: '16px' } }}>
                               Rs.{' '}
                               {typeof service.price === 'string'
                                 ? Number(service.price).toLocaleString()
                                 : (service.price ?? 0).toLocaleString()}
                             </Typography>
 
-                            <Divider orientation="vertical" flexItem sx={{ height: 20 }} />
+                            <Divider orientation="vertical" flexItem sx={{ height: 20, display: { xs: 'none', sm: 'block' } }} />
 
                             <Stack direction="row">
                               <Tooltip title="Edit Service">

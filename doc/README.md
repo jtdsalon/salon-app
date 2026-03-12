@@ -11,6 +11,7 @@ Admin and salon-side application for the Salon Booking platform.
 
 ## Documentation
 
+- **[ENV_AND_API_CONFIG.md](./ENV_AND_API_CONFIG.md)** — Environment variables, API base URL, image URLs, and CSP (env-only configuration).
 - [Salon Profile Update](SALON_PROFILE_UPDATE.md) — Profile fields, image optimization, completion requirements
 
 ## Stack
@@ -21,9 +22,26 @@ Admin and salon-side application for the Salon Booking platform.
 
 ## Run
 
+1. Install dependencies:
+
 ```bash
 npm install
+```
+
+2. Configure environment variables
+
+Copy `.env.example` to `.env` or `.env.development` and set at least:
+
+```env
+VITE_APP_BASE_URL=http://localhost:3000/api
+```
+
+All API and image URLs are driven by env only. See **[ENV_AND_API_CONFIG.md](./ENV_AND_API_CONFIG.md)** for full details (CSP, image origins, per-environment examples).
+
+3. Start the development server:
+
+```bash
 npm run dev
 ```
 
-API base URL is configured via environment (e.g. `VITE_APP_BASE_URL`).
+Restart the dev server after changing any env file.

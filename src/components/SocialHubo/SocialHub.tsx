@@ -313,7 +313,7 @@ const SocialHub: React.FC<{ onViewSalon?: (id: string) => void }> = ({ onViewSal
                 <Grid size={6}>
                   <Paper elevation={0} sx={{ p: 3, borderRadius: '32px', border: '1.5px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                      <Box sx={{ p: 1, borderRadius: '12px', bgcolor: 'rgba(16, 185, 129, 0.1)', color: '#10B981' }}>
+                      <Box sx={{ p: 1, borderRadius: '100px', bgcolor: 'rgba(16, 185, 129, 0.1)', color: '#10B981' }}>
                         <Users size={18} />
                       </Box>
                       <Typography sx={{ color: '#10B981', fontWeight: 900, fontSize: '12px' }}>{analyticsData.followerGrowth}</Typography>
@@ -325,7 +325,7 @@ const SocialHub: React.FC<{ onViewSalon?: (id: string) => void }> = ({ onViewSal
                 <Grid size={6}>
                   <Paper elevation={0} sx={{ p: 3, borderRadius: '32px', border: '1.5px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                      <Box sx={{ p: 1, borderRadius: '12px', bgcolor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' }}>
+                      <Box sx={{ p: 1, borderRadius: '100px', bgcolor: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' }}>
                         <Zap size={18} />
                       </Box>
                       <Typography sx={{ color: '#6366F1', fontWeight: 900, fontSize: '12px' }}>Healthy</Typography>

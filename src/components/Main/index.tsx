@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ThemeProvider, createTheme, CssBaseline, Box, Fab } from '@mui/material';
-import { MessageSquare } from 'lucide-react';
+import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
 
 // @ts-ignore
 import { AppView, CartItem, Product, Appointment } from '../types';
@@ -60,7 +59,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             main: mode === 'light' ? '#0F172A' : '#F8FAFC',
           },
           secondary: {
-            main: '#B59410', 
+            main: '#EAB308',
+            dark: '#EAB308',
           },
           error: {
             main: '#F43F5E',
@@ -162,27 +162,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </Box>
         </Box>
 
-        {/* Floating Action Button - hide in focus mode */}
-        {(!isScheduleView || !isFocusMode) && (
-          <Fab 
-            color="primary" 
-            aria-label="chat" 
-            sx={{ 
-              position: 'fixed', 
-              bottom: 40, 
-              right: 40, 
-              bgcolor: '#B59410', 
-              color: mode === 'dark' ? '#050914' : '#FFFFFF',
-              '&:hover': { bgcolor: '#FACC15' },
-              width: 72, 
-              height: 72,
-              boxShadow: '0 20px 40px rgba(181, 148, 16, 0.2)',
-              zIndex: 1000
-            }}
-          >
-            <MessageSquare size={32} strokeWidth={2.5} />
-          </Fab>
-        )}
       </Box>
 
       <CartDrawer 

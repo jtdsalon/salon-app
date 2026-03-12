@@ -58,20 +58,57 @@ export const PromotionTable: React.FC<PromotionTableProps> = ({
     }
   };
 
+  const containerSx = {
+    borderRadius: { xs: '16px', md: '24px' },
+    border: '1.5px solid',
+    borderColor: 'divider',
+    bgcolor: isDark ? '#0f172a' : 'white',
+    overflowX: 'auto' as const,
+    overflowY: 'hidden' as const,
+  };
+
+  if (isMobile) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {promotions.map((promo) => (
+          <Paper
+            key={promo.id}
+            elevation={0}
+            sx={{
+              borderRadius: '20px',
+              border: '1.5px solid',
+              borderColor: 'divider',
+              p: 2,
+              ...containerSx,
+            }}
+          >
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '14px' }}>{promo.title}</Typography>
+                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 1 }}>
+                  <Chip label={promo.type} size="small" sx={{ borderRadius: '6px', fontWeight: 700, fontSize: '10px', bgcolor: alpha(theme.palette.primary.main, 0.08), color: theme.palette.primary.main, height: '20px' }} />
+                  <Typography variant="body2" sx={{ fontWeight: 900, color: getStatusColor(promo.status), fontSize: '12px' }}>{promo.discount}</Typography>
+                  {promo.code ? <Chip label={promo.code} size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '10px' }} /> : null}
+                  <Chip label={promo.status} size="small" sx={{ borderRadius: '100px', fontWeight: 900, fontSize: '10px', bgcolor: alpha(getStatusColor(promo.status), 0.1), color: getStatusColor(promo.status), border: '1px solid', borderColor: alpha(getStatusColor(promo.status), 0.2), height: '22px' }} />
+                </Stack>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mt: 1 }}>{promo.startDate} → {promo.endDate}</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 800 }}>{promo.usageCount} uses</Typography>
+              </Box>
+              <Stack direction="row" spacing={0.5}>
+                <IconButton size="small" onClick={() => onToggleStatus(promo.id, !(promo.is_active ?? true))} aria-label={promo.status === 'Active' ? 'Pause' : 'Activate'}>{promo.status === 'Active' ? <Pause size={16} /> : <Play size={16} />}</IconButton>
+                <IconButton size="small" onClick={() => onEdit(promo.id)} aria-label="Edit"><Pencil size={16} /></IconButton>
+                <IconButton size="small" onClick={() => onDelete(promo.id)} sx={{ color: '#EF4444' }} aria-label="Delete"><Trash2 size={16} /></IconButton>
+              </Stack>
+            </Stack>
+          </Paper>
+        ))}
+      </Box>
+    );
+  }
+
   return (
-    <TableContainer 
-      component={Paper} 
-      elevation={0} 
-      sx={{ 
-        borderRadius: { xs: '16px', md: '24px' },
-        border: '1.5px solid',
-        borderColor: 'divider',
-        bgcolor: isDark ? '#0f172a' : 'white',
-        overflowX: 'auto',
-        overflowY: 'hidden',
-      }}
-    >
-      <Table sx={{ minWidth: 600 }} size={isMobile ? 'small' : 'medium'}>
+    <TableContainer component={Paper} elevation={0} sx={containerSx}>
+      <Table sx={{ minWidth: 600 }} size="medium">
         <TableHead>
           <TableRow sx={{ bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
             <TableCell sx={{ fontWeight: 900, color: 'text.secondary', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Promotion</TableCell>
@@ -86,41 +123,20 @@ export const PromotionTable: React.FC<PromotionTableProps> = ({
         </TableHead>
         <TableBody>
           {promotions.map((promo) => (
-            <TableRow 
+            <TableRow
               key={promo.id}
-              sx={{ 
+              sx={{
                 '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.01) },
                 '& td': { borderBottom: '1px solid', borderColor: alpha(theme.palette.divider, 0.5) }
               }}
             >
+              <TableCell><Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{promo.title}</Typography></TableCell>
               <TableCell>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{promo.title}</Typography>
+                <Chip label={promo.type} size="small" sx={{ borderRadius: '6px', fontWeight: 700, fontSize: '10px', bgcolor: alpha(theme.palette.primary.main, 0.08), color: theme.palette.primary.main, height: '20px' }} />
               </TableCell>
+              <TableCell><Typography variant="body2" sx={{ fontWeight: 900, color: getStatusColor(promo.status) }}>{promo.discount}</Typography></TableCell>
               <TableCell>
-                <Chip 
-                  label={promo.type} 
-                  size="small" 
-                  sx={{ 
-                    borderRadius: '6px', 
-                    fontWeight: 700, 
-                    fontSize: '10px',
-                    bgcolor: alpha(theme.palette.primary.main, 0.08),
-                    color: theme.palette.primary.main,
-                    height: '20px'
-                  }} 
-                />
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2" sx={{ fontWeight: 900, color: getStatusColor(promo.status) }}>
-                  {promo.discount}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                {promo.code ? (
-                  <Chip label={promo.code} size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '11px' }} />
-                ) : (
-                  <Typography variant="caption" color="text.secondary">—</Typography>
-                )}
+                {promo.code ? <Chip label={promo.code} size="small" variant="outlined" sx={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '11px' }} /> : <Typography variant="caption" color="text.secondary">—</Typography>}
               </TableCell>
               <TableCell>
                 <Stack spacing={0.2}>
@@ -129,41 +145,16 @@ export const PromotionTable: React.FC<PromotionTableProps> = ({
                 </Stack>
               </TableCell>
               <TableCell>
-                <Chip 
-                  label={promo.status} 
-                  size="small"
-                  sx={{ 
-                    borderRadius: '100px', 
-                    fontWeight: 900, 
-                    fontSize: '10px',
-                    bgcolor: alpha(getStatusColor(promo.status), 0.1),
-                    color: getStatusColor(promo.status),
-                    border: '1px solid',
-                    borderColor: alpha(getStatusColor(promo.status), 0.2),
-                    height: '24px'
-                  }}
-                />
+                <Chip label={promo.status} size="small" sx={{ borderRadius: '100px', fontWeight: 900, fontSize: '10px', bgcolor: alpha(getStatusColor(promo.status), 0.1), color: getStatusColor(promo.status), border: '1px solid', borderColor: alpha(getStatusColor(promo.status), 0.2), height: '24px' }} />
               </TableCell>
-              <TableCell align="center">
-                <Typography variant="body2" sx={{ fontWeight: 900 }}>{promo.usageCount}</Typography>
-              </TableCell>
+              <TableCell align="center"><Typography variant="body2" sx={{ fontWeight: 900 }}>{promo.usageCount}</Typography></TableCell>
               <TableCell align="right">
                 <Stack direction="row" spacing={0.5} justifyContent="flex-end">
                   <Tooltip title={promo.status === 'Active' ? 'Pause' : 'Activate'}>
-                    <IconButton size="small" onClick={() => onToggleStatus(promo.id, !(promo.is_active ?? true))} sx={{ color: 'text.secondary' }}>
-                      {promo.status === 'Active' ? <Pause size={16} /> : <Play size={16} />}
-                    </IconButton>
+                    <IconButton size="small" onClick={() => onToggleStatus(promo.id, !(promo.is_active ?? true))} sx={{ color: 'text.secondary' }}>{promo.status === 'Active' ? <Pause size={16} /> : <Play size={16} />}</IconButton>
                   </Tooltip>
-                  <Tooltip title="Edit">
-                    <IconButton size="small" onClick={() => onEdit(promo.id)} sx={{ color: 'text.secondary' }}>
-                      <Pencil size={16} />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete">
-                    <IconButton size="small" onClick={() => onDelete(promo.id)} sx={{ color: '#EF4444' }}>
-                      <Trash2 size={16} />
-                    </IconButton>
-                  </Tooltip>
+                  <Tooltip title="Edit"><IconButton size="small" onClick={() => onEdit(promo.id)} sx={{ color: 'text.secondary' }}><Pencil size={16} /></IconButton></Tooltip>
+                  <Tooltip title="Delete"><IconButton size="small" onClick={() => onDelete(promo.id)} sx={{ color: '#EF4444' }}><Trash2 size={16} /></IconButton></Tooltip>
                 </Stack>
               </TableCell>
             </TableRow>

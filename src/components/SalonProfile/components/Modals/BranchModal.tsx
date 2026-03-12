@@ -13,6 +13,8 @@ import {
     MenuItem,
     Alert,
     CircularProgress,
+    useTheme,
+    useMediaQuery,
 } from '@mui/material';
 import { Branch } from '../../types';
 import { RequiredIndicator } from '@/components/common/RequiredIndicator';
@@ -46,6 +48,9 @@ export const BranchModal: React.FC<BranchModalProps> = ({
     success = false,
     successMessage = '',
 }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     const handleFieldChange = (field: keyof Branch, value: any) => {
         onFormDataChange({ ...branchFormData, [field]: value });
     };
@@ -58,41 +63,41 @@ export const BranchModal: React.FC<BranchModalProps> = ({
             onClose={onClose}
             maxWidth="sm"
             fullWidth
+            fullScreen={isMobile}
             slotProps={{
                 paper: {
                     elevation: 0,
                     sx: {
-                        borderRadius: '32px',
-                        p: 1,
+                        borderRadius: isMobile ? 0 : '32px',
+                        p: isMobile ? 0 : 1,
                         bgcolor: 'background.paper',
                         backgroundImage: 'none',
-                        border: '1px solid',
+                        border: isMobile ? 'none' : '1px solid',
                         borderColor: 'divider',
                         overflow: 'hidden',
                         color: 'text.primary',
-                        // Override MUI v6 Paper overlay that causes white wash in dark mode
                         '--Paper-overlay': 'none',
                     },
                 },
             }}
         >
             <DialogTitle sx={{
-                p: 4,
+                p: { xs: 2, sm: 4 },
                 pb: 2,
                 borderBottom: '1px solid',
                 borderColor: 'divider'
             }}>
-                <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
+                <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em', fontSize: { xs: '1.15rem', sm: '1.5rem' } }}>
                     {editingBranch ? 'Edit Branch' : 'Add New Branch'}
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: { xs: '0.8rem', sm: 'inherit' } }}>
                     {editingBranch
                         ? 'Update the details of this location'
                         : 'Add a new location to your salon'}
                 </Typography>
             </DialogTitle>
 
-            <DialogContent sx={{ p: 4, pt: 3, color: 'text.primary' }}>
+            <DialogContent sx={{ p: { xs: 2, sm: 4 }, pt: 3, color: 'text.primary' }}>
                 <Stack spacing={3}>
                     {error && (
                         <Alert severity="error" sx={{ borderRadius: '16px' }}>
@@ -149,7 +154,7 @@ export const BranchModal: React.FC<BranchModalProps> = ({
                         label="Contact Number"
                         value={branchFormData.phone || ''}
                         onChange={(e) => handleFieldChange('phone', e.target.value)}
-                        placeholder="+94 77 123 4567"
+                        placeholder="077 XXX XXXX"
                         disabled={isProcessing}
                         sx={{
                             '& .MuiOutlinedInput-root': {
@@ -160,6 +165,7 @@ export const BranchModal: React.FC<BranchModalProps> = ({
                             startAdornment: (
                                 <Typography
                                     variant="caption"
+                                    component="span"
                                     sx={{
                                         mr: 1,
                                         color: 'text.secondary',
@@ -219,15 +225,17 @@ export const BranchModal: React.FC<BranchModalProps> = ({
                                 borderRadius: '16px',
                             }
                         }}
-                        MenuProps={{
-                            PaperProps: {
-                                sx: {
-                                    borderRadius: '16px',
-                                    mt: 1.5,
-                                    bgcolor: 'background.paper',
-                                    backgroundImage: 'none',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
+                        SelectProps={{
+                            MenuProps: {
+                                PaperProps: {
+                                    sx: {
+                                        borderRadius: '16px',
+                                        mt: 1.5,
+                                        bgcolor: 'background.paper',
+                                        backgroundImage: 'none',
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                    },
                                 },
                             },
                         }}
@@ -241,7 +249,7 @@ export const BranchModal: React.FC<BranchModalProps> = ({
             </DialogContent>
 
             <DialogActions sx={{
-                p: 4,
+                p: { xs: 2, sm: 4 },
                 pt: 2,
                 borderTop: '1px solid',
                 borderColor: 'divider'
@@ -253,7 +261,8 @@ export const BranchModal: React.FC<BranchModalProps> = ({
                         onClick={onClose}
                         disabled={isProcessing}
                         sx={{
-                            borderRadius: '100px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
                             fontWeight: 900,
                             borderWidth: '1.5px',
                             py: 1.5,
@@ -266,7 +275,7 @@ export const BranchModal: React.FC<BranchModalProps> = ({
                             }
                         }}
                     >
-                        Discard Changes
+                        Discard changes
                     </Button>
                     <Button
                         fullWidth
@@ -275,21 +284,14 @@ export const BranchModal: React.FC<BranchModalProps> = ({
                         onClick={onSave}
                         disabled={isProcessing}
                         sx={{
-                            borderRadius: '100px',
+                            borderRadius: '12px',
+                            fontSize: '11px',
                             fontWeight: 900,
                             py: 1.5,
                             bgcolor: 'text.primary',
                             color: 'background.paper',
-                            '&:hover': {
-                                bgcolor: 'text.primary',
-                                opacity: 0.9,
-                                transform: 'translateY(-1px)',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                            },
-                            '&:disabled': {
-                                opacity: 0.6,
-                                cursor: 'not-allowed'
-                            }
+                            '&:hover': { bgcolor: 'text.primary', opacity: 0.9 },
+                            '&:disabled': { opacity: 0.6, cursor: 'not-allowed' }
                         }}
                     >
                         {isProcessing ? (
@@ -298,7 +300,7 @@ export const BranchModal: React.FC<BranchModalProps> = ({
                                 <span>{editingBranch ? 'Updating...' : 'Creating...'}</span>
                             </Stack>
                         ) : (
-                            editingBranch ? 'Update Branch' : 'Save Branch'
+                            editingBranch ? 'Update branch' : 'Save branch'
                         )}
                     </Button>
                 </Stack>

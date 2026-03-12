@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { 
   Grid2, Stack, Paper, Typography, Box, Avatar, IconButton, Chip, TextField, Button, 
-  List, ListItem, ListItemIcon, ListItemText, alpha, CircularProgress 
+  List, ListItem, ListItemIcon, ListItemText, alpha, CircularProgress, InputAdornment 
 } from '@mui/material';
 import { Camera, User } from 'lucide-react';
 import type { ActivityLog } from '@/state/settings/types';
@@ -141,13 +141,22 @@ const IdentityTab: React.FC<IdentityTabProps> = ({
                   />
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 6 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 900, color: 'text.secondary', ml: 1, mb: 0.5, display: 'block' }}>PHONE</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 900, color: 'text.secondary', ml: 1, mb: 0.5, display: 'block' }}>CONTACT NUMBER</Typography>
                   <TextField 
                     fullWidth 
+                    label=""
+                    placeholder="077 XXX XXXX"
                     value={userData.phone} 
                     onChange={(e) => setUserData({...userData, phone: e.target.value})} 
                     disabled={isSaving}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} 
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Typography component="span" variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>+94</Typography>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid2>
                 <Grid2 size={{ xs: 12 }}>

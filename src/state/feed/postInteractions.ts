@@ -83,12 +83,20 @@ export function* updatePostSaga(action: {
   }
 }
 
+function findPostInFeed(feed: { posts?: any[]; favourites?: { posts: any[] }; public?: { posts: any[] } }, postId: string) {
+  const fromPosts = feed.posts?.find((p: any) => p.id === postId)
+  if (fromPosts) return fromPosts
+  const fromFav = feed.favourites?.posts?.find((p: any) => p.id === postId)
+  if (fromFav) return fromFav
+  return feed.public?.posts?.find((p: any) => p.id === postId)
+}
+
 export function* togglePostLikeSaga(action: { payload: string | { postId: string; pageId: string | null } }): Generator<any, void, any> {
   const pl = action.payload
   const postId = typeof pl === 'string' ? pl : pl.postId
   const pageId = typeof pl === 'object' && pl !== null && 'pageId' in pl ? pl.pageId : null
-  const state: { posts: any[] } = yield select((s: RootState) => s.feed)
-  const post = state.posts.find((p: any) => p.id === postId)
+  const state: any = yield select((s: RootState) => s.feed)
+  const post = findPostInFeed(state, postId)
   const prevPost = post ? { ...post } : null
 
   // Optimistic update
@@ -117,8 +125,8 @@ export function* togglePostLikeSaga(action: { payload: string | { postId: string
 
 export function* togglePostSaveSaga(action: { payload: string }): Generator<any, void, any> {
   const postId = action.payload
-  const state: { posts: any[] } = yield select((s: RootState) => s.feed)
-  const post = state.posts.find((p: any) => p.id === postId)
+  const state: any = yield select((s: RootState) => s.feed)
+  const post = findPostInFeed(state, postId)
   const prevPost = post ? { ...post } : null
 
   if (prevPost) {

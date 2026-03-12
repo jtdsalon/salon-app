@@ -90,7 +90,7 @@ export const validateSalonForm = (formData: SalonFormData): SalonFormErrors => {
 
   // Validate area/neighbourhood (required per doc)
   if (!formData.area || formData.area.trim().length === 0) {
-    errors.area = 'Area / Neighbourhood is required';
+    errors.area = 'Please enter your area or neighbourhood';
   } else if (formData.area.trim().length > 150) {
     errors.area = 'Area must be less than 150 characters';
   }
@@ -184,7 +184,7 @@ export const validateField = (
     }
 
     case 'area': {
-      if (!value || String(value).trim().length === 0) return 'Area / Neighbourhood is required';
+      if (!value || String(value).trim().length === 0) return 'Please enter your area or neighbourhood';
       const area = String(value).trim();
       if (area.length > 150) return 'Area must be less than 150 characters';
       break;

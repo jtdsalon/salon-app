@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuthContext } from '@/state/auth';
 import { useSalonLayout } from '@/components/common/layouts';
 import { ROUTES } from './routeConfig';
@@ -79,11 +79,14 @@ export function NotificationsPage() {
 export function SalonProfilePage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user } = useAuthContext();
   const { selectedSalonId, setSelectedSalonId } = useSalonLayout();
   const state = location.state as { salonId?: string; openSalonEdit?: boolean } | undefined;
   const openSalonEditOnMount = state?.openSalonEdit ?? false;
   const incomingSalonId = state?.salonId;
+  const tabParam = searchParams.get('tab');
+  const initialTab = tabParam === 'staff' ? 1 : 0;
 
   useEffect(() => {
     if (incomingSalonId) {
@@ -98,6 +101,7 @@ export function SalonProfilePage() {
       salonId={effectiveSalonId}
       onBack={() => navigate(ROUTES.SOCIAL_HUB)}
       openSalonEditOnMount={openSalonEditOnMount}
+      initialTab={initialTab}
     />
   );
 }

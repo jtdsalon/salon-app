@@ -98,7 +98,7 @@ const DemandForecaster: React.FC = () => {
   };
 
   return (
-    <Box className="animate-fadeIn" sx={{ pb: 8 }}>
+    <Box className="animate-fadeIn" sx={{ pb: 8, width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
       {/* Header */}
       <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} sx={{ mb: 6, gap: 2 }}>
         <Box>
