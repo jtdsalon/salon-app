@@ -8,13 +8,13 @@ Steps to run and set up the salon-app on the QA server (`root@QA:~/salon-app`).
 
 The app uses **Vite modes**. For QA, the mode is `qa`, which loads **`.env.qa`**.
 
-- Ensure **`.env.qa`** exists and has the QA API base URL, for example:
+- On the QA server, ensure **`.env.qa`** exists in the salon-app directory and has the QA API base URL:
   ```bash
-  # .env.qa
+  # .env.qa (in ~/salon-app/)
   VITE_APP_BASE_URL=http://129.212.226.33/api
   ```
 - Replace `http://129.212.226.33` with your QA server host if different.
-- No need to set `NODE_ENV`; Vite uses `--mode qa` to choose `.env.qa`.
+- **Important:** If this is missing or wrong when you run `npm run build:qa`, the built app may call `http://localhost:3000/api` instead of your QA API. The app will try to fix this at runtime when opened from the QA host, but for correct builds always set `VITE_APP_BASE_URL` in `.env.qa` before building.
 
 ---
 
@@ -42,31 +42,40 @@ npm run qa
 - App is at `http://<QA_HOST>:5173` (or the host Vite prints).
 - Stop with `Ctrl+C`. For long-running, use Option B or run under PM2 (see below).
 
-### Option B: Build and serve (recommended for QA)
+### Option B: Build and deploy for nginx (recommended for QA)
 
-Build the QA bundle, then serve the `dist` folder with any static server or reverse proxy.
+Nginx serves the salon app from **`/var/www/salon-app/`**. After you build, you must **copy the built files** there or nginx will keep serving the old version.
+
+**1. Build for QA**
 
 ```bash
 cd ~/salon-app
+git pull
+npm install
 npm run build:qa
 ```
 
-- Output is in **`dist/`**.
-- The app is built with **base path `/salon-app/`**, so it must be served under that path (e.g. `https://your-qa-server/salon-app/`).
+- Output is in **`dist/`** (e.g. `dist/index.html`, `dist/assets/`).
 
-**Serve with a static server (e.g. `serve`):**
+**2. Deploy the built files to where nginx serves from**
 
 ```bash
-# Install serve once (if needed)
-npm install -g serve
-
-# Serve dist at /salon-app (so app is at http://<QA_HOST>:3000/salon-app/)
-serve -s dist -l 3000 -n
+# Create target dir if needed, then copy dist contents into it
+sudo mkdir -p /var/www/salon-app
+sudo cp -r dist/* /var/www/salon-app/
 ```
 
-Then configure your reverse proxy (e.g. nginx) to proxy or serve:
-- `/salon-app/` → `http://127.0.0.1:3000/salon-app/`  
-  or point the document root for `/salon-app/` to `~/salon-app/dist` with location `/salon-app/` and `try_files` / `alias` as needed.
+- Nginx is configured with `location /salon-app/` and `root /var/www`, so it serves files from `/var/www/salon-app/`. Updating this folder is what makes your latest build visible at `http://<QA_HOST>/salon-app/`.
+
+**3. Avoid browser cache when testing**
+
+- Hard refresh: Ctrl+Shift+R (or Cmd+Shift+R on Mac), or open the app in an incognito/private window, so you see the new bundle instead of a cached one.
+
+**One-liner after pull (build + deploy):**
+
+```bash
+cd ~/salon-app && git pull && npm install && npm run build:qa && sudo cp -r dist/* /var/www/salon-app/
+```
 
 **Or run the dev server under PM2 (for a persistent QA instance):**
 
@@ -87,8 +96,11 @@ pm2 save
 | Install deps | `npm install` |
 | Run dev server (QA mode) | `npm run qa` |
 | Build for QA | `npm run build:qa` |
+| **Deploy build to nginx** | `sudo cp -r dist/* /var/www/salon-app/` (after build) |
+| Full update (pull + build + deploy) | `cd ~/salon-app && git pull && npm install && npm run build:qa && sudo cp -r dist/* /var/www/salon-app/` |
 | Preview built app locally | `npm run preview` (after build) |
-| Serve built app (e.g. port 3000) | `serve -s dist -l 3000 -n` (after `npm run build:qa`) |
+
+**If latest changes don’t show:** Nginx serves from `/var/www/salon-app/`, not from `dist/`. After every `npm run build:qa` you must run `sudo cp -r dist/* /var/www/salon-app/`. Then hard-refresh the browser (Ctrl+Shift+R) or use a private window to avoid cache.
 
 ---
 
