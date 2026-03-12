@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Phone,
@@ -71,6 +72,7 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
   onAdd,
 }) => {
   const themeFromHook = useTheme();
+  const isMobile = useMediaQuery(themeFromHook.breakpoints.down('sm'));
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [branchToDelete, setBranchToDelete] = useState<Branch | null>(null);
   const [isPrimaryError, setIsPrimaryError] = useState(false);
@@ -101,19 +103,20 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
 
   return (
     <Fade in>
-      <Box>
+      <Box sx={{ maxWidth: '100%', overflow: 'hidden' }}>
         {/* Header Section */}
         <Stack
-          direction="row"
+          direction={{ xs: 'column', sm: 'row' }}
           justifyContent="space-between"
-          alignItems="center"
-          sx={{ mb: 4 }}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={{ xs: 2, sm: 0 }}
+          sx={{ mb: { xs: 3, md: 4 } }}
         >
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="h5" sx={{ fontWeight: 900, fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
               Locations
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: 'inherit' } }}>
               Manage your {branches.length} location
               {branches.length !== 1 ? 's' : ''} ({activeBranchesCount} active)
             </Typography>
@@ -121,20 +124,21 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
           <Button
             variant="contained"
             disableElevation
-            startIcon={<Plus size={18} />}
+            startIcon={<Plus size={16} />}
             onClick={onAdd}
             sx={{
-              borderRadius: '100px',
+              borderRadius: '12px',
               bgcolor: 'text.primary',
+              color: 'background.paper',
+              fontSize: '11px',
               fontWeight: 900,
-              px: 3,
-              '&:hover': {
-                bgcolor: 'text.primary',
-                opacity: 0.9,
-              },
+              px: 2.5,
+              py: 1.5,
+              minHeight: 44,
+              '&:hover': { bgcolor: 'text.primary', opacity: 0.9 },
             }}
           >
-            Add Branch
+            Add branch
           </Button>
         </Stack>
 
@@ -154,16 +158,16 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
           <Paper
             elevation={0}
             sx={{
-              p: 8,
+              p: { xs: 4, md: 8 },
               textAlign: 'center',
-              borderRadius: '32px',
+              borderRadius: { xs: '20px', md: '32px' },
               border: '2px dashed',
               borderColor: 'divider',
               bgcolor: 'action.hover',
             }}
           >
             <Building2 size={48} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, fontSize: { xs: '1rem', md: 'inherit' } }}>
               No Locations Yet
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -172,29 +176,35 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
             <Button
               variant="contained"
               disableElevation
-              startIcon={<Plus size={18} />}
+              startIcon={<Plus size={16} />}
               onClick={onAdd}
               sx={{
-                borderRadius: '100px',
+                borderRadius: '12px',
                 bgcolor: 'text.primary',
+                color: 'background.paper',
+                fontSize: '11px',
                 fontWeight: 900,
+                px: 2.5,
+                py: 1.5,
+                minHeight: 44,
+                '&:hover': { bgcolor: 'text.primary', opacity: 0.9 },
               }}
             >
-              Add First Location
+              Add first location
             </Button>
           </Paper>
         )}
 
         {/* Branches Grid */}
         {branches.length > 0 && (
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, md: 3 }}>
             {branches.map((branch) => (
               <Grid key={branch.id} size={{ xs: 12, md: 6 }}>
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 4,
-                    borderRadius: '32px',
+                    p: { xs: 2.5, md: 4 },
+                    borderRadius: { xs: '20px', md: '32px' },
                     border: '1.5px solid',
                     borderColor: branch.isPrimary ? 'secondary.main' : 'divider',
                     position: 'relative',
@@ -212,17 +222,17 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
                       size="small"
                       sx={{
                         position: 'absolute',
-                        top: 16,
-                        right: 16,
+                        top: { xs: 12, md: 16 },
+                        right: { xs: 12, md: 16 },
                         bgcolor: 'secondary.main',
                         color: 'white',
                         fontWeight: 900,
-                        fontSize: '11px',
+                        fontSize: '10px',
                       }}
                     />
                   )}
 
-                  <Stack spacing={3}>
+                  <Stack spacing={{ xs: 2, md: 3 }}>
                     {/* Branch Name and Location Icon */}
                     <Stack direction="row" spacing={2} alignItems="flex-start">
                       <Box
@@ -233,23 +243,24 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          flexShrink: 0,
                         }}
                       >
                         <MapPinned size={20} color={themeFromHook.palette.secondary.main} />
                       </Box>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 900 }}>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 900, fontSize: { xs: '1rem', md: '1.25rem' } }}>
                           {branch.name}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', md: 'inherit' } }}>
                           {getStatusLabel(branch.status || 'active')}
                         </Typography>
                       </Box>
                     </Stack>
 
                     {/* Address */}
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', md: 'inherit' }, wordBreak: 'break-word' }}>
                         {branch.address}
                       </Typography>
                     </Box>
@@ -258,15 +269,16 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
 
                     {/* Phone and Actions */}
                     <Stack
-                      direction="row"
+                      direction={{ xs: 'column', sm: 'row' }}
                       justifyContent="space-between"
-                      alignItems="center"
+                      alignItems={{ xs: 'flex-start', sm: 'center' }}
+                      spacing={{ xs: 1.5, sm: 0 }}
                     >
-                      <Stack direction="row" spacing={1} alignItems="center">
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
                         <Phone size={14} color={themeFromHook.palette.text.secondary} />
                         <Typography
                           sx={{
-                            fontSize: '13px',
+                            fontSize: { xs: '12px', md: '13px' },
                             fontWeight: 700,
                             color: 'text.secondary',
                           }}
@@ -317,23 +329,32 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
           onClose={() => setDeleteConfirmOpen(false)}
           maxWidth="sm"
           fullWidth
+          fullScreen={isMobile}
+          PaperProps={{
+            sx: {
+              borderRadius: isMobile ? 0 : undefined,
+              p: isMobile ? 0 : undefined,
+            },
+          }}
         >
-          <DialogTitle sx={{ fontWeight: 900, fontSize: '18px' }}>
+          <DialogTitle sx={{ fontWeight: 900, fontSize: { xs: '16px', sm: '18px' }, p: { xs: 2, sm: 2 } }}>
             Delete Location?
           </DialogTitle>
-          <DialogContent>
+          <DialogContent sx={{ px: { xs: 2, sm: 3 }, pb: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Are you sure you want to remove "{branchToDelete?.name}"? It will no longer appear in your locations list.
             </Typography>
           </DialogContent>
-          <DialogActions sx={{ p: 2, gap: 1 }}>
+          <DialogActions sx={{ p: { xs: 2 }, gap: 1, flexWrap: 'wrap' }}>
             <Button
               variant="outlined"
+              fullWidth={isMobile}
               onClick={() => setDeleteConfirmOpen(false)}
               sx={{
-                borderRadius: '100px',
+                borderRadius: '12px',
                 fontWeight: 900,
                 borderColor: 'divider',
+                fontSize: '11px',
               }}
             >
               Cancel
@@ -342,10 +363,12 @@ export const BranchesTab: React.FC<BranchesTabProps> = ({
               variant="contained"
               color="error"
               disableElevation
+              fullWidth={isMobile}
               onClick={handleConfirmDelete}
               sx={{
-                borderRadius: '100px',
+                borderRadius: '12px',
                 fontWeight: 900,
+                fontSize: '11px',
               }}
             >
               Decommission

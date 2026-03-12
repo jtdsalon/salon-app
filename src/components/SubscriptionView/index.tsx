@@ -294,8 +294,8 @@ const SubscriptionView: React.FC<SubscriptionPlansProps> = ({
   const currentOptionResolved = currentOption ?? options[0];
 
   return (
-    <Box className="animate-fadeIn">
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+    <Box className="animate-fadeIn" sx={{ width: '100%', maxWidth: '100%', minWidth: 0, overflowX: 'hidden' }}>
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4, minWidth: 0 }}>
         <Box sx={{ p: 1.5, bgcolor: 'rgba(234, 179, 8, 0.1)', borderRadius: '12px' }}>
           <Gem color="#EAB308" size={24} />
         </Box>

@@ -671,7 +671,7 @@ const ChatView: React.FC = () => {
               <Button 
                 fullWidth 
                 startIcon={<EyeOff size={18} />}
-                sx={{ mt: 6, color: '#ef4444', fontWeight: 900, fontSize: '12px', textTransform: 'none', justifyContent: 'flex-start', py: 2, borderRadius: '12px', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.05)' } }}
+                sx={{ mt: 6, color: '#ef4444', fontWeight: 900, fontSize: '12px', textTransform: 'none', justifyContent: 'flex-start', py: 2, borderRadius: '100px', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.05)' } }}
               >
                 Block and report access
               </Button>

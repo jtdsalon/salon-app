@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Salon } from '../../../state/salon/types';
 import { getFullImageUrl } from '../../../lib/util/imageUrl';
+import { ACCENT_COLOR, ACCENT_COLOR_HOVER, CARD_BG_DARK, ON_ACCENT } from '@/lib/constants/theme';
 
 interface SalonHeaderProps {
   salon: Salon;
@@ -35,7 +36,7 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
       sx={{ 
         borderRadius: { xs: '24px', md: '48px' }, 
         overflow: 'hidden', 
-        bgcolor: isDark ? '#0B1224' : 'background.paper', 
+        bgcolor: isDark ? CARD_BG_DARK : 'background.paper', 
         border: '1px solid',
         borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'divider', 
         mb: 6, 
@@ -43,7 +44,7 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
       }}
     >
       {/* Cover Section */}
-      <Box sx={{ height: 200, width: '100%', position: 'relative', bgcolor: isDark ? '#050914' : alpha(theme.palette.primary.main, 0.05) }}>
+      <Box sx={{ height: 200, width: '100%', position: 'relative', bgcolor: isDark ? ON_ACCENT : alpha(theme.palette.primary.main, 0.05) }}>
         {fullCoverUrl && (
           <img 
             src={fullCoverUrl} 
@@ -63,12 +64,14 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
             position: 'absolute', 
             inset: 0, 
             background: isDark 
-              ? 'linear-gradient(to bottom, transparent 30%, #0B1224 100%)'
+              ? `linear-gradient(to bottom, transparent 30%, ${CARD_BG_DARK} 100%)`
               : `linear-gradient(to bottom, transparent 30%, ${theme.palette.background.paper} 100%)`
           }} 
         />
         <Button
           variant="contained"
+          color="secondary"
+          disableElevation
           onClick={onEditClick}
           startIcon={<Pencil size={16} />}
           sx={{
@@ -76,14 +79,17 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
             top: 24,
             right: 24,
             borderRadius: '12px',
-            bgcolor: '#EAB308',
-            color: '#050914',
+            bgcolor: ACCENT_COLOR,
+            color: ON_ACCENT,
+            fontSize: '12px',
+            fontWeight: 900,
             height: 44,
             px: 3,
-            fontWeight: 900,
+            textTransform: 'none',
             boxShadow: isDark ? '0 4px 12px rgba(234, 179, 8, 0.3)' : '0 4px 12px rgba(0,0,0,0.1)',
             '&:hover': {
-              bgcolor: '#FACC15',
+              bgcolor: ACCENT_COLOR_HOVER,
+              color: ON_ACCENT,
               boxShadow: isDark ? '0 6px 16px rgba(234, 179, 8, 0.4)' : '0 6px 16px rgba(0,0,0,0.15)',
             },
           }}
@@ -102,7 +108,7 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
                 width: 120, 
                 height: 120, 
                 border: '6px solid',
-                borderColor: isDark ? '#0B1224' : 'background.paper', 
+                borderColor: isDark ? CARD_BG_DARK : 'background.paper', 
                 boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.6)' : '0 10px 20px rgba(0,0,0,0.1)',
                 bgcolor: isDark ? '#1a2233' : '#f0f0f0'
               }} 
@@ -121,14 +127,14 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: '#EAB308', 
+                bgcolor: ACCENT_COLOR, 
                 borderRadius: '50%', 
                 border: '3px solid',
-                borderColor: isDark ? '#0B1224' : 'background.paper',
+                borderColor: isDark ? CARD_BG_DARK : 'background.paper',
                 boxSizing: 'border-box'
               }}
             >
-              <Crown size={16} color="#050914" />
+              <Crown size={16} color={ON_ACCENT} />
             </Box>
           </Box>
 
@@ -137,11 +143,11 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
               <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.04em', color: 'text.primary', fontSize: { xs: '1.5rem', md: '2rem' } }}>
                 {salon.name}
               </Typography>
-              <CheckCircle2 size={24} color="#EAB308" fill="#EAB308" />
+              <CheckCircle2 size={24} color={ACCENT_COLOR} fill={ACCENT_COLOR} />
             </Stack>
             
             <Stack direction="row" spacing={2.5} alignItems="center" justifyContent={{ xs: 'center', md: 'flex-start' }} sx={{ mb: 2 }}>
-              <Typography sx={{ color: '#EAB308', fontWeight: 900, letterSpacing: '0.15em', fontSize: '11px' }}>
+              <Typography sx={{ color: ACCENT_COLOR, fontWeight: 900, letterSpacing: '0.15em', fontSize: '11px' }}>
                 @{salon.handle?.toUpperCase()}
               </Typography>
               
@@ -150,7 +156,7 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
                 {(salon.socials?.instagram ?? salon.instagram) && (
                   <IconButton 
                     size="small" 
-                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: '#EAB308' } }} 
+                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: ACCENT_COLOR } }} 
                     component="a" 
                     href={(() => {
                       const v = (salon.socials?.instagram ?? salon.instagram) as string;
@@ -165,7 +171,7 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
                 {(salon.socials?.facebook ?? salon.facebook) && (
                   <IconButton 
                     size="small" 
-                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: '#EAB308' } }} 
+                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: ACCENT_COLOR } }} 
                     component="a" 
                     href={(() => {
                       const v = (salon.socials?.facebook ?? salon.facebook) as string;
@@ -180,7 +186,7 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
                 {(salon.socials?.website ?? salon.website) && (
                   <IconButton 
                     size="small" 
-                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: '#EAB308' } }} 
+                    sx={{ color: 'text.secondary', p: 0.5, '&:hover': { color: ACCENT_COLOR } }} 
                     component="a" 
                     href={(salon.socials?.website ?? salon.website) as string} 
                     target="_blank"
@@ -195,12 +201,12 @@ export const SalonHeader: React.FC<SalonHeaderProps> = ({ salon, currentOpenStat
             {/* Stats / Info Row */}
             <Stack direction="row" spacing={3} flexWrap="wrap" justifyContent={{ xs: 'center', md: 'flex-start' }}>
               <Stack direction="row" spacing={0.8} alignItems="center">
-                <Star size={14} fill="#EAB308" color="#EAB308" />
+                <Star size={14} fill={ACCENT_COLOR} color={ACCENT_COLOR} />
                 <Typography sx={{ fontWeight: 900, color: 'text.primary', fontSize: '13px' }}>{salon.rating}</Typography>
                 <Typography sx={{ color: 'text.secondary', opacity: 0.7, fontSize: '12px', fontWeight: 700 }}>({salon.reviewsCount})</Typography>
               </Stack>
               <Stack direction="row" spacing={0.8} alignItems="center">
-                <Clock size={14} color="#EAB308" />
+                <Clock size={14} color={ACCENT_COLOR} />
                 <Typography sx={{ fontWeight: 800, fontSize: '12px', color: 'text.primary' }}>{currentOpenStatus}</Typography>
               </Stack>
               <Stack direction="row" spacing={0.8} alignItems="center">

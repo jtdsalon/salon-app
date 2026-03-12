@@ -52,6 +52,8 @@ export interface CreateAppointmentPayload {
     duration_minutes?: number
   }>
   staff_id?: string
+  user_id?: string  // When salon admin books on behalf of a customer
+  customer_name?: string  // Walk-in customer display name when no user_id
   booking_date: string
   start_time: string
   end_time: string

@@ -76,14 +76,14 @@ const printInvoice = (apt: Appointment, services: Service[], staffMember?: Staff
         </head>
         <body>
           <div class="header">
-            <h1>✨ Appointment Invoice</h1>
-            <p style="color: #94A3B8; font-weight: 600;">Sanctuary Receipt</p>
+            <h1>Appointment invoice</h1>
+            <p style="color: #94A3B8; font-weight: 600;">Receipt</p>
           </div>
           <div class="info">
-            <p><strong>Patron:</strong> ${apt.customerName}</p>
+            <p><strong>Customer:</strong> ${apt.customerName}</p>
             <p><strong>Date:</strong> ${apt.date}</p>
             <p><strong>Time:</strong> ${apt.time}</p>
-            <p><strong>Artisan:</strong> ${staffMember?.name || 'Any Artisan'}</p>
+            <p><strong>Staff:</strong> ${staffMember?.name || 'Any staff'}</p>
           </div>
           <table>
             <thead>
@@ -140,8 +140,8 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
   }, [serviceIds, services]);
 
   const getStaffName = (staffId: string) => {
-    if (!staffId || staffId === 'anyone') return 'Any Artisan';
-    return staff.find(s => s.id === staffId)?.name || 'Any Artisan';
+    if (!staffId || staffId === 'anyone') return 'Any staff';
+    return staff.find(s => s.id === staffId)?.name || 'Any staff';
   };
 
   const handleToggleOption = (key: keyof CompletionOptions) => {
@@ -181,10 +181,10 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
             <Box>
               <Typography variant="h5" sx={{ fontWeight: 900, fontSize: { xs: '1.2rem', md: '1.5rem' } }}>{selectedApt?.customerName}</Typography>
               <Stack direction="row" spacing={1} alignItems="center">
-                <Typography sx={{ fontWeight: 700, color: '#94A3B8', fontSize: '12px' }}>Elite Patron</Typography>
+                <Typography sx={{ fontWeight: 700, color: '#94A3B8', fontSize: '12px' }}>Customer</Typography>
                 {isAlreadyCompleted && (
                   <Chip 
-                    label="COMPLETED" 
+                    label="Completed" 
                     size="small" 
                     sx={{ height: 18, fontSize: '8px', fontWeight: 900, bgcolor: alpha('#10B981', 0.1), color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.2)' }} 
                   />
@@ -199,7 +199,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
       <DialogContent sx={{ px: 3, pb: 3 }}>
         <Stack spacing={3}>
           <Box sx={{ bgcolor: isDark ? '#050914' : '#F8FAFC', p: 2, borderRadius: '20px' }}>
-            <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.1em' }}>SCHEDULED SERVICES</Typography>
+            <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.1em' }}>Scheduled services</Typography>
             <Stack spacing={1}>
               {ritualList.length > 0 ? (
                 ritualList.map((ritual) => {
@@ -234,7 +234,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
 
           {styleImageUrls.length > 0 && (
             <Box sx={{ bgcolor: isDark ? '#050914' : '#F8FAFC', p: 2, borderRadius: '20px' }}>
-              <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.1em' }}>CUSTOMER&apos;S STYLE REFERENCES</Typography>
+              <Typography sx={{ color: '#EAB308', fontWeight: 900, fontSize: '10px', mb: 2, letterSpacing: '0.1em' }}>Customer&apos;s style references</Typography>
               <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
                 {styleImageUrls.map((url, idx) => {
                   const fullUrl = getFullImageUrl(url) || url;
@@ -264,10 +264,10 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
 
           <Grid2 container spacing={2}>
             {[ 
-              { label: 'DATE', value: selectedApt?.date, icon: <CalendarIcon size={18} /> }, 
-              { label: 'ARTISAN', value: selectedApt ? getStaffName(selectedApt.staffId) : '', icon: <Briefcase size={18} /> }, 
-              { label: 'TIME', value: selectedApt ? formatTime12h(selectedApt.time) : '', icon: <Clock size={18} /> }, 
-              { label: 'TOTAL YIELD', value: `Rs. ${totalYield.toLocaleString()}`, icon: <CreditCard size={18} />, highlight: true }, 
+              { label: 'Date', value: selectedApt?.date, icon: <CalendarIcon size={18} /> }, 
+              { label: 'Staff', value: selectedApt ? getStaffName(selectedApt.staffId) : '', icon: <Briefcase size={18} /> }, 
+              { label: 'Time', value: selectedApt ? formatTime12h(selectedApt.time) : '', icon: <Clock size={18} /> }, 
+              { label: 'Total', value: `Rs. ${totalYield.toLocaleString()}`, icon: <CreditCard size={18} />, highlight: true }, 
             ].map((item, i) => ( 
               <Grid2 size={{ xs: 6 }} key={i}> 
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}> 
@@ -285,7 +285,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
             <Box sx={{ mt: 2, p: 3, borderRadius: '24px', bgcolor: isDark ? '#050914' : alpha('#EAB308', 0.05), border: '1px solid', borderColor: alpha('#EAB308', 0.2) }}>
               <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
                 <Sparkles size={20} color="#EAB308" />
-                <Typography sx={{ fontWeight: 900, fontSize: '14px', letterSpacing: '0.05em' }}>COMPLETION CHANNELS</Typography>
+                <Typography sx={{ fontWeight: 900, fontSize: '14px', letterSpacing: '0.05em' }}>Completion options</Typography>
               </Stack>
               
               <Grid2 container spacing={1.5}>
@@ -322,7 +322,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
                 startIcon={isSubmitting ? <CircularProgress size={18} /> : <CheckCircle2 size={18} />}
                 sx={{ mt: 3, height: 50, bgcolor: '#EAB308', color: '#050914', fontWeight: 900, borderRadius: '12px', '&:hover': { bgcolor: '#D4A307' } }}
               >
-                FINALIZE VAULT ENTRY
+                Complete appointment
               </Button>
             </Box>
           </Collapse>
@@ -352,22 +352,22 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
              startIcon={<Printer size={20} />}
              sx={{ borderRadius: '12px', fontWeight: 900, py: 1.8, bgcolor: '#EAB308', color: '#050914', '&:hover': { bgcolor: '#D4A307' } }}
            >
-             Print Appointment Record
+             Print receipt
            </Button>
          )}
          
          {!isCompleting && (
            <>
              {!isAlreadyCompleted && (
-               <Button fullWidth variant="outlined" disabled={isSubmitting} onClick={() => onEdit(selectedApt!)} sx={{ borderRadius: '12px', fontWeight: 900, py: 1.5, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider' }}>Modify Appointment Center</Button>
+               <Button fullWidth variant="outlined" disabled={isSubmitting} onClick={() => onEdit(selectedApt!)} sx={{ borderRadius: '12px', fontWeight: 900, py: 1.5, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider' }}>Edit appointment</Button>
              )}
-             <Button fullWidth variant="text" disabled={isSubmitting} startIcon={isSubmitting ? <CircularProgress size={18} /> : <ArrowLeft size={18} />} onClick={onBackToList} sx={{ borderRadius: '12px', fontWeight: 900, color: '#94A3B8' }}>Back to Session List</Button>
-             <Button fullWidth variant="text" disabled={isSubmitting} color="error" onClick={() => onArchive(selectedApt!.id)} sx={{ borderRadius: '12px', fontWeight: 900 }}>Archive Appointment</Button>
+             <Button fullWidth variant="text" disabled={isSubmitting} startIcon={isSubmitting ? <CircularProgress size={18} /> : <ArrowLeft size={18} />} onClick={onBackToList} sx={{ borderRadius: '12px', fontWeight: 900, color: '#94A3B8' }}>Back to list</Button>
+             <Button fullWidth variant="text" disabled={isSubmitting} color="error" onClick={() => onArchive(selectedApt!.id)} sx={{ borderRadius: '12px', fontWeight: 900 }}>Cancel appointment</Button>
            </>
          )}
          
          {isCompleting && (
-           <Button fullWidth variant="text" disabled={isSubmitting} onClick={() => setIsCompleting(false)} sx={{ fontWeight: 900, color: '#94A3B8' }}>Cancel Finalization</Button>
+           <Button fullWidth variant="text" disabled={isSubmitting} onClick={() => setIsCompleting(false)} sx={{ fontWeight: 900, color: '#94A3B8' }}>Cancel</Button>
          )}
       </DialogActions>
 

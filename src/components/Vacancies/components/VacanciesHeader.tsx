@@ -40,7 +40,14 @@ const VacanciesHeader: React.FC<VacanciesHeaderProps> = ({ count, searchQuery, o
         </Box>
       </Stack>
 
-      <Stack direction="row" spacing={1.5} sx={{ width: { xs: '100%', md: 'auto' } }}>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={1.5}
+        sx={{
+          width: { xs: '100%', md: 'auto' },
+          minWidth: 0,
+        }}
+      >
         <TextField
           size="small"
           placeholder="Search..."
@@ -64,19 +71,20 @@ const VacanciesHeader: React.FC<VacanciesHeaderProps> = ({ count, searchQuery, o
             ),
           }}
         />
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           startIcon={<Plus size={14} />}
           onClick={onAddNew}
-          sx={{ 
-            borderRadius: '10px', 
-            bgcolor: isDark ? 'white' : '#050914', 
-            color: isDark ? '#050914' : 'white', 
+          sx={{
+            borderRadius: '10px',
+            bgcolor: isDark ? 'white' : '#050914',
+            color: isDark ? '#050914' : 'white',
             fontWeight: 800,
             px: 2,
             height: 38,
             fontSize: '12px',
-            '&:hover': { bgcolor: isDark ? '#F1F5F9' : '#1e293b' }
+            width: { xs: '100%', md: 'auto' },
+            '&:hover': { bgcolor: isDark ? '#F1F5F9' : '#1e293b' },
           }}
         >
           New Job

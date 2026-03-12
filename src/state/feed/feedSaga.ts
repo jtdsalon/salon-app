@@ -1,6 +1,10 @@
 import { takeEvery } from 'redux-saga/effects'
 import * as T from './types'
-import { getFeedPostsSaga } from './getFeedPosts'
+import {
+  getFeedPostsSaga,
+  getFavouritesFeedPostsSaga,
+  getPublicFeedPostsSaga,
+} from './getFeedPosts'
 import { createPostSaga } from './createPost'
 import {
   deletePostSaga,
@@ -15,6 +19,8 @@ import {
 
 export function* feedSaga() {
   yield takeEvery(T.GET_FEED_POSTS, getFeedPostsSaga as any)
+  yield takeEvery(T.GET_FAVOURITES_FEED_POSTS, getFavouritesFeedPostsSaga as any)
+  yield takeEvery(T.GET_PUBLIC_FEED_POSTS, getPublicFeedPostsSaga as any)
   yield takeEvery(T.CREATE_POST, createPostSaga as any)
   yield takeEvery(T.DELETE_POST, deletePostSaga as any)
   yield takeEvery(T.UPDATE_POST, updatePostSaga as any)

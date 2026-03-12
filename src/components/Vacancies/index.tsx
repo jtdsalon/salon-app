@@ -104,7 +104,17 @@ const Vacancies: React.FC = () => {
   );
 
   return (
-    <Box sx={{ pb: 8 }} className="animate-fadeIn">
+    <Box
+      className="animate-fadeIn"
+      sx={{
+        pb: 8,
+        width: '100%',
+        maxWidth: '100%',
+        minWidth: 0,
+        overflowX: 'hidden',
+        boxSizing: 'border-box',
+      }}
+    >
       {error && (
         <Alert severity="error" onClose={clearError} sx={{ mb: 2 }}>
           {typeof error === 'string' ? error : 'An error occurred while managing vacancies'}

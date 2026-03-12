@@ -109,7 +109,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       fontWeight: 900, 
                       textTransform: 'uppercase'
                     }}>
-                      {ritualsForThisDay.length} {ritualsForThisDay.length === 1 ? 'RIT' : 'RITS'}
+                      {ritualsForThisDay.length} {ritualsForThisDay.length === 1 ? 'appointment' : 'appointments'}
                     </Typography>
                   </Box>
                 </Box>

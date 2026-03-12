@@ -108,13 +108,23 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin, onVerificationComplete }) 
         flex: 1, 
         display: 'flex', 
         flexDirection: 'column', 
-        justifyContent: 'center', 
-        px: { xs: 4, sm: 8, lg: 12 }, 
+        justifyContent: { xs: 'flex-start', md: 'center' }, 
+        px: { xs: 2, sm: 4, md: 8, lg: 12 }, 
         bgcolor: 'background.paper',
-        overflow: 'auto'
+        overflow: 'auto',
+        minWidth: 0,
       }}>
-        <Container maxWidth="sm" sx={{ py: 4 }}>
-          <Box sx={{ maxWidth: 440, mx: 'auto', width: '100%' }}>
+        <Container
+          maxWidth="sm"
+          disableGutters
+          sx={{
+            py: { xs: 2, sm: 3, md: 4 },
+            pb: { xs: 'calc(24px + env(safe-area-inset-bottom, 0))', sm: 4 },
+            width: '100%',
+            maxWidth: '100%',
+          }}
+        >
+          <Box sx={{ maxWidth: { xs: '100%', sm: 440 }, mx: 'auto', width: '100%', boxSizing: 'border-box', minWidth: 0 }}>
             {renderForm()}
           </Box>
         </Container>

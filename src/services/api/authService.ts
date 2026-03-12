@@ -137,9 +137,35 @@ class AuthService {
     }
   }
 
+  async forgotPassword(email: string): Promise<{ ok: boolean; message: string }> {
+    const response = await client.post<{ data?: { ok?: boolean; message?: string }; ok?: boolean; message?: string }>(
+      endpoints.FORGOT_PASSWORD_URL,
+      { email }
+    )
+    const payload = response.data?.data ?? response.data
+    return { ok: payload?.ok ?? true, message: payload?.message ?? 'If an account exists, you will receive a reset link.' }
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ ok: boolean; message: string }> {
+    const response = await client.post<{ data?: { ok?: boolean; message?: string }; ok?: boolean; message?: string }>(
+      endpoints.RESET_PASSWORD_URL,
+      { token, newPassword }
+    )
+    const payload = response.data?.data ?? response.data
+    return { ok: payload?.ok ?? true, message: payload?.message ?? 'Password has been reset.' }
+  }
+
+  async resendVerificationEmail(): Promise<{ ok: boolean; message: string }> {
+    const response = await client.post<{ data?: { ok?: boolean; message?: string }; ok?: boolean; message?: string }>(
+      endpoints.SEND_VERIFICATION_EMAIL_URL
+    )
+    const payload = response.data?.data ?? response.data
+    return { ok: payload?.ok ?? true, message: payload?.message ?? 'Verification code sent.' }
+  }
+
   /**
    * Verify OTP for post-signup. Calls POST /auth/verify.
-   * Sample code: 123456 (until email/SMS sending is implemented).
+   * Uses code from email or sample 123456 when SMTP not configured.
    */
   async verifyOtp(emailCode: string, phoneCode: string): Promise<{ user: unknown }> {
     try {

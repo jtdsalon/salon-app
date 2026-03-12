@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -6,9 +6,33 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export default defineConfig({
-  base: '/salon-app/',
-  plugins: [react()],
+function getCspImgOrigins(env: Record<string, string>): string {
+  const base = env.VITE_APP_BASE_URL?.trim()
+  if (!base) return ''
+  try {
+    const url = new URL(base)
+    return url.origin
+  } catch {
+    return ''
+  }
+}
+
+export default defineConfig(({ command, mode }) => {
+  const env = loadEnv(mode, process.cwd(), '') as Record<string, string>
+  const cspImgOrigins = getCspImgOrigins(env)
+  return {
+  // Dev: serve at root so lazy-loaded chunks (e.g. routePages) resolve correctly at http://localhost:5173/
+  // Build: use /salon-app/ for deployment under a subpath
+  base: command === 'serve' ? '/' : '/salon-app/',
+  plugins: [
+    react(),
+    {
+      name: 'html-csp-env',
+      transformIndexHtml(html: string) {
+        return html.replace('__CSP_IMG_ORIGINS__', cspImgOrigins)
+      },
+    },
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -44,4 +68,5 @@ export default defineConfig({
     sourcemap: false,
     minify: 'terser',
   },
+}
 })

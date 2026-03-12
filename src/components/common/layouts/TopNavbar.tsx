@@ -143,16 +143,14 @@ const TopNavbar: React.FC = () => {
   const { user } = useAuthContext();
   const salon = useSelector((state: RootState) => state.salon.salon);
   const {
-    cart,
-    handleOpenCart,
     toggleTheme,
     onLogout,
   } = useSalonLayout();
   const { notifications, unreadCount } = useNotifications();
 
   const currentView = getCurrentView(location.pathname);
+  const isStaffPortalView = currentView === AppView.STAFF_PORTAL || (location.pathname === ROUTES.SALON_PROFILE && new URLSearchParams(location.search).get('tab') === 'staff');
   const isDarkMode = theme.palette.mode === 'dark';
-  const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
   const openMenu = Boolean(anchorEl);
 
   const userInitials = user ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase() : '—';
@@ -162,6 +160,12 @@ const TopNavbar: React.FC = () => {
   const salonAvatarUrl = salon?.avatar || salon?.image_url;
 
   const handleNav = (view: AppView) => {
+    if (view === AppView.STAFF_PORTAL) {
+      navigate(`${ROUTES.SALON_PROFILE}?tab=staff`);
+      setMobileMenuOpen(false);
+      setAnchorEl(null);
+      return;
+    }
     const path = APP_VIEW_TO_PATH[view];
     if (path) {
       navigate(path);
@@ -281,20 +285,12 @@ const TopNavbar: React.FC = () => {
                 width: 40,
                 height: 40,
                 border: `1px solid ${theme.palette.divider}`,
-                color: currentView === AppView.STAFF_PORTAL ? '#EAB308' : theme.palette.text.secondary,
+                color: isStaffPortalView ? '#EAB308' : theme.palette.text.secondary,
               }}
             >
               <Briefcase size={18} />
             </IconButton>
           </Tooltip>
-        )}
-
-        {!isExtraSmall && (
-          <Badge badgeContent={cartCount} color="primary" overlap="circular">
-            <IconButton onClick={handleOpenCart} sx={{ width: { xs: 36, md: 40 }, height: { xs: 36, md: 40 }, border: `1px solid ${theme.palette.divider}` }}>
-              <ShoppingBag size={18} />
-            </IconButton>
-          </Badge>
         )}
 
         <Badge badgeContent={unreadCount > 0 ? unreadCount : undefined} color="error" overlap="circular">
@@ -391,7 +387,7 @@ const TopNavbar: React.FC = () => {
           )}
         </Box>
         <Divider sx={{ mb: 1 }} />
-        {menuItems.map((item) => (
+        {!isMobile && menuItems.map((item) => (
           <MenuItem key={item.id} onClick={() => handleNav(item.id)} sx={{ py: 1.5, px: 3 }}>
             <ListItemIcon sx={{ color: currentView === item.id ? '#EAB308' : 'text.secondary' }}>{icons[item.id]}</ListItemIcon>
             <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 700, fontSize: '14px', color: currentView === item.id ? 'text.primary' : 'text.secondary' }} />
@@ -418,9 +414,10 @@ const TopNavbar: React.FC = () => {
         PaperProps={{
           sx: {
             mt: 2,
-            width: 320,
-            maxHeight: 480,
-            borderRadius: '24px',
+            width: { xs: 'calc(100vw - 32px)', sm: 320 },
+            maxWidth: 400,
+            maxHeight: { xs: '70vh', sm: 480 },
+            borderRadius: { xs: '20px', sm: '24px' },
             boxShadow: isDarkMode ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(0,0,0,0.12)',
             border: `1px solid ${theme.palette.divider}`,
             overflow: 'hidden',

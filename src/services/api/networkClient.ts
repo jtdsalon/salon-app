@@ -1,8 +1,9 @@
 import axios, { AxiosInstance } from 'axios'
+import { baseApiUrl, apiKey as envApiKey } from '@/config/api'
 import * as properties from '../../lib/properties/properties'
 import * as constants from '../../lib/constants'
 import { HTTP_CODE } from '../../lib/enums/httpData'
-import { ROUTES } from '../../routes/routeConfig'
+import { ROUTES, BASE_PATH } from '../../routes/routeConfig'
 
 /** Clear auth storage and redirect to login (token expired, invalid session, or forbidden). */
 function clearAuthAndRedirectToLogin(): void {
@@ -10,7 +11,8 @@ function clearAuthAndRedirectToLogin(): void {
   localStorage.removeItem('refreshToken')
   localStorage.removeItem('user')
   if (typeof window !== 'undefined') {
-    window.location.href = ROUTES.LOGIN
+    const loginPath = BASE_PATH + (ROUTES.LOGIN.startsWith('/') ? ROUTES.LOGIN : '/' + ROUTES.LOGIN)
+    window.location.href = loginPath
   }
 }
 
@@ -39,10 +41,8 @@ const processQueue = (error: any, token: string | null = null) => {
 
 /* Function to create and configure an axios instance for network requests */
 const networkClient = (): AxiosInstance => {
-  const baseURL = (import.meta.env.VITE_APP_BASE_URL as string | undefined) || 'http://localhost:5000/api'
-  
   const axiosInstance = axios.create({
-    baseURL,
+    baseURL: baseApiUrl,
   })
 
   /* Request interceptor to add headers and modify config before making a request */
@@ -61,7 +61,7 @@ const networkClient = (): AxiosInstance => {
 
       /* Add other required headers */
       if (constants.HEADER_KEY_API_KEY) {
-        config.headers[constants.HEADER_KEY_API_KEY] = (import.meta.env.VITE_APP_API_KEY as string | undefined) || ''
+        config.headers[constants.HEADER_KEY_API_KEY] = envApiKey || ''
       }
       if (constants.HEADER_KEY_ACCEPT) {
         config.headers[constants.HEADER_KEY_ACCEPT] = constants.HEADER_VAL_ACCEPT

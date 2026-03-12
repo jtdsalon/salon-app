@@ -36,9 +36,10 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, items, onUpdateQ
             PaperProps={{
                 sx: {
                     width: { xs: '100%', sm: 400 },
+                    maxWidth: '100vw',
                     bgcolor: 'background.paper',
                     backgroundImage: 'none',
-                    boxShadow: '-10px 0 30px rgba(0,0,0,0.05)'
+                    boxShadow: '-10px 0 30px rgba(0,0,0,0.05)',
                 }
             }}
         >
@@ -112,7 +113,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose, items, onUpdateQ
 
                 {/* Footer */}
                 {items.length > 0 && (
-                    <Box sx={{ p: 4, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ p: 4, pb: { xs: 'calc(32px + env(safe-area-inset-bottom, 0))', sm: 4 }, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider' }}>
                         <Stack spacing={2} sx={{ mb: 4 }}>
                             <Stack direction="row" justifyContent="space-between">
                                 <Typography color="text.secondary" sx={{ fontWeight: 500 }}>Aesthetic Subtotal</Typography>

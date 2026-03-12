@@ -4,6 +4,9 @@ export const REGISTER_URL = '/auth/register'
 export const REFRESH_TOKEN_URL = '/auth/refresh'
 export const LOGOUT_URL = '/auth/logout'
 export const VERIFY_URL = '/auth/verify'
+export const FORGOT_PASSWORD_URL = '/auth/forgot-password'
+export const RESET_PASSWORD_URL = '/auth/reset-password'
+export const SEND_VERIFICATION_EMAIL_URL = '/auth/send-verification-email'
 
 // User API Endpoints
 export const SEARCH_USERS_URL = '/users/search'
@@ -32,6 +35,7 @@ export const SEARCH_SALONS_URL = '/salons/search'
 // Staff API Endpoints
 export const GET_STAFF_URL = '/staff/salon/{salonId}'
 export const GET_STAFF_BY_ID_URL = '/staff/{id}'
+export const GET_STAFF_STATS_URL = '/staff/{id}/stats'
 export const CREATE_STAFF_URL = '/staff'
 export const UPDATE_STAFF_URL = '/staff/{id}'
 export const DELETE_STAFF_URL = '/staff/{id}'
@@ -70,6 +74,8 @@ export const PROCESS_PAYMENT_URL = '/payments/{id}/process'
 
 // Feed / Posts
 export const GET_POSTS_URL = '/posts'
+export const GET_FAVOURITES_FEED_URL = '/posts/favourites'
+export const GET_PUBLIC_FEED_URL = '/posts/public'
 export const GET_POST_URL = '/posts/{postId}'
 export const CREATE_POST_URL = '/posts'
 export const UPDATE_POST_URL = '/posts/{postId}'

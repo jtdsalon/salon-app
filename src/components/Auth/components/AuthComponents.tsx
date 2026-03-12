@@ -104,11 +104,12 @@ export const AuthFormLayout: React.FC<AuthFormLayoutProps> = ({
                     <Button
                         onClick={onFooterAction}
                         sx={{
-                            color: 'text.primary',
+                            color: '#EAB308',
                             fontWeight: 900,
                             p: 0,
                             minWidth: 'auto',
-                            textTransform: 'none'
+                            textTransform: 'none',
+                            '&:hover': { color: '#ca9b07', bgcolor: 'transparent' }
                         }}
                     >
                         {footerActionText}
@@ -371,7 +372,7 @@ export const HeroSection = () => (
                     fontWeight={900}
                     color="white"
                     sx={{
-                        maxWidth: 500,
+                        maxWidth: { xs: '100%', md: 500 },
                         letterSpacing: '-0.02em',
                         lineHeight: 1.1
                     }}
@@ -387,7 +388,7 @@ export const HeroSection = () => (
                     variant="h6"
                     fontWeight={400}
                     color="rgba(255,255,255,0.8)"
-                    sx={{ maxWidth: 400 }}
+                    sx={{ maxWidth: { xs: '100%', md: 400 } }}
                 >
                     Curate bookings, manage your collective, and scale your aesthetic presence with AI intelligence.
                 </Typography>

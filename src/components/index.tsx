@@ -17,7 +17,8 @@ const Main: React.FC = () => {
                         main: mode === 'light' ? '#0F172A' : '#F8FAFC',
                     },
                     secondary: {
-                        main: '#B59410',
+                        main: '#EAB308',
+                        dark: '#EAB308',
                     },
                     error: {
                         main: '#F43F5E',

@@ -132,13 +132,13 @@ export const VerificationForm: React.FC<VerificationFormProps> = ({
           <Shield size={28} color="#EAB308" />
         </Box>
         <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.04em', mb: 1 }}>
-          Verify <Box component="span" sx={{ color: 'secondary.main' }}>Email & Phone</Box>
+          Verify <Box component="span" sx={{ color: '#EAB308' }}>Email & Phone</Box>
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
           Enter the 6-digit codes sent to your email and phone to complete signup.
         </Typography>
         {sampleCode && (
-          <Typography variant="caption" sx={{ display: 'block', mt: 1.5, fontWeight: 600, color: 'secondary.main' }}>
+          <Typography variant="caption" sx={{ display: 'block', mt: 1.5, fontWeight: 600, color: '#EAB308' }}>
             Dev: use <strong>{sampleCode}</strong> for both codes (email/SMS not implemented yet)
           </Typography>
         )}
@@ -178,7 +178,7 @@ export const VerificationForm: React.FC<VerificationFormProps> = ({
               sx={{
                 mt: 1,
                 fontWeight: 700,
-                color: resendEmailCooldown > 0 || !onResendEmail ? 'text.disabled' : 'secondary.main',
+                color: resendEmailCooldown > 0 || !onResendEmail ? 'text.disabled' : '#EAB308',
                 cursor: resendEmailCooldown > 0 || !onResendEmail ? 'default' : 'pointer',
                 background: 'none',
                 border: 'none',
@@ -222,7 +222,7 @@ export const VerificationForm: React.FC<VerificationFormProps> = ({
               sx={{
                 mt: 1,
                 fontWeight: 700,
-                color: resendPhoneCooldown > 0 || !onResendPhone ? 'text.disabled' : 'secondary.main',
+                color: resendPhoneCooldown > 0 || !onResendPhone ? 'text.disabled' : '#EAB308',
                 cursor: resendPhoneCooldown > 0 || !onResendPhone ? 'default' : 'pointer',
                 background: 'none',
                 border: 'none',
