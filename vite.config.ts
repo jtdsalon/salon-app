@@ -55,7 +55,7 @@ export default defineConfig(({ command, mode }) => {
   },
   server: {
     port: 5173,
-    open: true,
+    open: false, // avoid spawn xdg-open ENOENT on headless/remote (e.g. QA)
     strictPort: false,
     cors: true,
     hmr: {
