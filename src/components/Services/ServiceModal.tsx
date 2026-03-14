@@ -38,6 +38,7 @@ export interface ServiceFormData {
   description?: string;
   duration?: number;
   duration_minutes?: number;
+  buffer_minutes?: number;
   images?: (File | string)[];
 }
 
@@ -137,6 +138,9 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
     const description = (serviceFormData.description || '').trim();
     if (description.length > 0 && description.length < 10) {
       errors.description = 'Description must be at least 10 characters (or leave empty)';
+    }
+    if (description.length > 500) {
+      errors.description = 'Description must be at most 500 characters';
     }
 
     if (serviceFormData.price === undefined || serviceFormData.price === null || serviceFormData.price < 0) {
@@ -333,8 +337,8 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '20px' } }}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start">
-                    <Sparkles size={18} color="inherit" />
+                  <InputAdornment position="start" sx={{ color: 'text.secondary' }}>
+                    <Sparkles size={18} strokeWidth={2} />
                   </InputAdornment>
                 ),
                 sx: { borderRadius: '20px', fontWeight: 600 },
@@ -381,11 +385,12 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
               rows={2}
               value={serviceFormData.description || ''}
               onChange={(e) => handleFieldChange('description', e.target.value)}
-              placeholder="Describe this service... (optional; if provided, min 10 characters)"
+              placeholder="Describe this service... (optional; 10–500 characters)"
               error={!!formErrors.description}
-              helperText={formErrors.description}
+              helperText={formErrors.description || `${(serviceFormData.description || '').length}/500`}
               disabled={isLoading}
               InputLabelProps={formLabelProps}
+              inputProps={{ maxLength: 500 }}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
             />
 
@@ -446,6 +451,33 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
                         <Clock size={18} strokeWidth={2} />
                         <Typography variant="caption" sx={{ fontWeight: 900 }}>min</Typography>
                       </Stack>
+                    </InputAdornment>
+                  ),
+                  sx: { borderRadius: '16px' },
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Buffer time (min)"
+                type="number"
+                value={serviceFormData.buffer_minutes ?? ''}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '') handleFieldChange('buffer_minutes', undefined);
+                  else {
+                    const num = Number(raw);
+                    handleFieldChange('buffer_minutes', Number.isNaN(num) ? undefined : Math.max(0, num));
+                  }
+                }}
+                placeholder="e.g., 5"
+                disabled={isLoading}
+                InputLabelProps={formLabelProps}
+                inputProps={{ min: 0 }}
+                helperText="Cleanup/gap between appointments"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start" sx={{ color: 'text.secondary' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 900 }}>min</Typography>
                     </InputAdornment>
                   ),
                   sx: { borderRadius: '16px' },

@@ -62,13 +62,14 @@ export default function Services() {
         price: service.price,
         duration_minutes: service.duration_minutes ?? service.duration ?? 30,
         duration: service.duration ?? service.duration_minutes ?? 30,
+        buffer_minutes: (fullService as any)?.buffer_minutes ?? 0,
         category: service.category,
         description: (fullService as any)?.description ?? service.description ?? '',
         images: imagesList,
       });
     } else {
       setEditingService(null);
-      setFormData({ name: '', price: 0, duration_minutes: 30, category: 'Hair', description: '', images: [] });
+      setFormData({ name: '', price: 0, duration_minutes: 30, buffer_minutes: 0, category: 'Hair', description: '', images: [] });
     }
     setIsModalOpen(true);
   };
@@ -88,11 +89,13 @@ export default function Services() {
     const description = (formData.description ?? '').toString().trim();
     const images = (formData as any).images ?? [];
 
+    const buffer_minutes = Number(formData.buffer_minutes);
     const payload: any = {
       name,
       price,
       duration_minutes: duration,
       duration,
+      buffer_minutes: Number.isNaN(buffer_minutes) ? 0 : Math.max(0, buffer_minutes),
       category,
       description: description || undefined,
       images: images.length > 0 ? images : undefined,

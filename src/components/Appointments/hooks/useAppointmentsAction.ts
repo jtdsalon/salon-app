@@ -210,6 +210,21 @@ export function useAppointmentsAction({
       .sort((a, b) => a.time.localeCompare(b.time));
   }, [appointments, viewDateStr]);
 
+  const { listPast, listToday, listUpcoming, todayStr } = useMemo(() => {
+    const d = new Date();
+    const todayStrVal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const past = appointments
+      .filter((apt) => apt.date < todayStrVal)
+      .sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
+    const today = appointments
+      .filter((apt) => apt.date === todayStrVal)
+      .sort((a, b) => a.time.localeCompare(b.time));
+    const upcoming = appointments
+      .filter((apt) => apt.date > todayStrVal)
+      .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+    return { listPast: past, listToday: today, listUpcoming: upcoming, todayStr: todayStrVal };
+  }, [appointments]);
+
   const listFilteredAppointments = useMemo(() => {
     return appointments
       .filter((apt) => {
@@ -222,7 +237,7 @@ export function useAppointmentsAction({
   }, [appointments, timeRange, viewDateStr]);
 
   const currentRitualCount =
-    viewType === 'calendar' ? appointments.length : viewType === 'time' ? dayAppointments.length : listFilteredAppointments.length;
+    viewType === 'calendar' ? appointments.length : viewType === 'time' ? dayAppointments.length : listPast.length + listToday.length + listUpcoming.length;
 
   const handleOpenModal = (apt?: Appointment, _targetHour?: number) => {
     setEditingApt(apt || null);
@@ -252,9 +267,8 @@ export function useAppointmentsAction({
   };
 
   const handleGoToToday = () => {
-    const today = new Date(2026, 1, 10);
     setTimeRange('today');
-    setViewDate(today);
+    setViewDate(new Date());
   };
 
   const handleSaveAppointment = async (formData: any) => {
@@ -411,8 +425,12 @@ export function useAppointmentsAction({
     setTimeRange,
     viewDateStr,
     dayAppointments,
+    listPast,
+    listToday,
+    listUpcoming,
     listFilteredAppointments,
     currentRitualCount,
+    todayStr,
     currentSalonId,
     services,
     staff,

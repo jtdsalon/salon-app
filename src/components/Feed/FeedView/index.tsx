@@ -11,8 +11,6 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
-  Fab,
-  Zoom,
 } from '@mui/material';
 import { Plus } from 'lucide-react';
 import { FeedItem } from '../FeedItem';
@@ -206,25 +204,6 @@ const FeedView: React.FC<FeedViewProps> = ({ onViewSalon }) => {
 
         <FeedComposer open={isComposerOpen} onClose={handleCloseComposer} onSave={handleSavePost} currentUser={currentUser} actorPage={actorPage} initialPost={editingPost} />
       </Container>
-
-      {isMobile && actorPage && (
-        <Zoom in={!isComposerOpen} appear={false}>
-          <Fab
-            onClick={handleOpenComposer}
-            sx={{
-              position: 'fixed',
-              bottom: 100,
-              right: 24,
-              bgcolor: 'text.primary',
-              color: 'secondary.main',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-              '&:hover': { bgcolor: 'text.secondary' },
-            }}
-          >
-            <Plus size={24} strokeWidth={3} />
-          </Fab>
-        </Zoom>
-      )}
     </Box>
   );
 };
