@@ -22,6 +22,7 @@ import {
   InputAdornment,
   alpha,
   useTheme,
+  useMediaQuery,
   Switch,
   Divider,
   Alert
@@ -39,6 +40,7 @@ export const CreatePromotion: React.FC<{
   onSave: () => void;
 }> = ({ salonId, editPromotionId, duplicateFromId, onCancel, onSave }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isDark = theme.palette.mode === 'dark';
   const {
     activeStep,
@@ -131,8 +133,8 @@ export const CreatePromotion: React.FC<{
               <Paper 
                 elevation={0} 
                 sx={{ 
-                  p: 3, 
-                  borderRadius: '24px', 
+                  p: { xs: 2, sm: 3 }, 
+                  borderRadius: { xs: '16px', sm: '24px' }, 
                   bgcolor: alpha(theme.palette.primary.main, 0.03),
                   border: '1.5px solid',
                   borderColor: alpha(theme.palette.primary.main, 0.1)
@@ -142,7 +144,7 @@ export const CreatePromotion: React.FC<{
                   value={formData.discountType}
                   onChange={(e) => handleFieldChange('discountType', e.target.value)}
                 >
-                  <Stack direction="row" spacing={4}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 4 }}>
                     <FormControlLabel 
                       value="percentage" 
                       control={<Radio color="warning" />} 
@@ -202,18 +204,20 @@ export const CreatePromotion: React.FC<{
               <Paper 
                 elevation={0}
                 sx={{ 
-                  p: 3, 
-                  borderRadius: '24px', 
+                  p: { xs: 2, sm: 3 }, 
+                  borderRadius: { xs: '16px', sm: '24px' }, 
                   bgcolor: '#EAB308', 
                   color: '#050914',
                   display: 'flex',
-                  alignItems: 'center',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: { xs: 'flex-start', sm: 'center' },
                   justifyContent: 'space-between',
+                  gap: { xs: 1.5, sm: 0 },
                   boxShadow: '0 12px 24px -8px rgba(234, 179, 8, 0.4)'
                 }}
               >
-                <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 900 }}>
+                <Box sx={{ width: '100%', minWidth: 0 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 900, fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
                     {(formData.type as PromotionType) === 'Bundle Package'
                       ? `Rs.${formData.bundlePrice || '0'} Bundle`
                       : formData.discountType === 'percentage'
@@ -224,7 +228,9 @@ export const CreatePromotion: React.FC<{
                     {formData.title || 'Your Promotion Title'}
                   </Typography>
                 </Box>
-                <Sparkles size={40} opacity={0.5} />
+                <Box sx={{ flexShrink: 0, alignSelf: { xs: 'flex-end', sm: 'center' } }}>
+                  <Sparkles size={isMobile ? 28 : 40} opacity={0.5} />
+                </Box>
               </Paper>
             </Box>
           </Stack>
@@ -266,6 +272,21 @@ export const CreatePromotion: React.FC<{
                 })
               }
             />
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mt: 2, display: 'block' }}>
+              Or target by category (applies to all services in selected categories):
+            </Typography>
+            <Autocomplete
+              multiple
+              options={[...new Set(services.map((s) => (s as any).category || 'General').filter(Boolean))]}
+              value={formData.selectedCategories || []}
+              onChange={(_, v) => handleFieldChange('selectedCategories', v)}
+              renderInput={(params) => (
+                <TextField {...params} label="Categories" placeholder="Select categories" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }} />
+              )}
+              renderTags={(value, getTagProps) =>
+                value.map((opt, i) => <Chip key={opt} label={opt} {...getTagProps({ index: i })} sx={{ borderRadius: '8px' }} />)
+              }
+            />
             {services.length > 0 && (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                 {services.slice(0, 6).map((svc) => (
@@ -293,7 +314,7 @@ export const CreatePromotion: React.FC<{
               <Typography variant="body2" color="text.secondary">Set when this promotion will be active.</Typography>
             </Box>
       <Grid2 container spacing={2}>
-        <Grid2 size={{ xs: 6 }}>
+        <Grid2 size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="Start Date"
@@ -306,7 +327,7 @@ export const CreatePromotion: React.FC<{
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
           />
         </Grid2>
-        <Grid2 size={{ xs: 6 }}>
+        <Grid2 size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             label="End Date"
@@ -346,7 +367,7 @@ export const CreatePromotion: React.FC<{
                     exit={{ height: 0, opacity: 0 }}
                   >
                   <Grid2 container spacing={2} sx={{ mt: 1 }}>
-                    <Grid2 size={{ xs: 6 }}>
+                    <Grid2 size={{ xs: 12, sm: 6 }}>
                       <TextField
                         fullWidth
                         label="From"
@@ -357,7 +378,7 @@ export const CreatePromotion: React.FC<{
                         sx={{ '& .MuiOutlinedInput-root': { borderRadius: '16px' } }}
                       />
                     </Grid2>
-                    <Grid2 size={{ xs: 6 }}>
+                    <Grid2 size={{ xs: 12, sm: 6 }}>
                       <TextField
                         fullWidth
                         label="To"
@@ -389,6 +410,40 @@ export const CreatePromotion: React.FC<{
             </Box>
             
       <Grid2 container spacing={3}>
+        <Grid2 size={{ xs: 12 }}>
+          <TextField
+            fullWidth
+            label="Min. Booking Value (Rs.)"
+            type="number"
+            placeholder="e.g., 2000"
+            value={formData.minBookingValue}
+            onChange={(e) => handleFieldChange('minBookingValue', e.target.value)}
+            helperText="Minimum total booking amount required (leave empty for no minimum)"
+            InputProps={{ inputProps: { min: 0 }, sx: { borderRadius: '16px' } }}
+          />
+        </Grid2>
+        <Grid2 size={{ xs: 12 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>Eligible Days</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            Restrict promotion to specific days of the week (leave empty = all days)
+          </Typography>
+          <Stack direction="row" flexWrap="wrap" gap={1}>
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+              <Chip
+                key={day}
+                label={day}
+                onClick={() => {
+                  const current = formData.eligibleDays || [];
+                  const next = current.includes(i) ? current.filter((d) => d !== i) : [...current, i].sort((a, b) => a - b);
+                  handleFieldChange('eligibleDays', next);
+                }}
+                variant={(formData.eligibleDays || []).includes(i) ? 'filled' : 'outlined'}
+                color="warning"
+                sx={{ borderRadius: '8px' }}
+              />
+            ))}
+          </Stack>
+        </Grid2>
         <Grid2 size={{ xs: 12, sm: 4 }}>
           <TextField
             fullWidth
@@ -434,21 +489,26 @@ export const CreatePromotion: React.FC<{
             <Paper 
               elevation={0}
               sx={{ 
-                p: 3, 
-                borderRadius: '24px', 
+                p: { xs: 2, sm: 3 }, 
+                borderRadius: { xs: '16px', sm: '24px' }, 
                 border: '1.5px solid', 
                 borderColor: formData.isFeatured ? '#EAB308' : 'divider',
                 bgcolor: formData.isFeatured ? alpha('#EAB308', 0.05) : 'transparent',
                 transition: 'all 0.3s ease'
               }}
             >
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Stack direction="row" spacing={2} alignItems="center">
+              <Stack 
+                direction={{ xs: 'column', sm: 'row' }} 
+                justifyContent="space-between" 
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                spacing={{ xs: 2, sm: 0 }}
+              >
+                <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ minWidth: 0, flex: 1 }}>
                   <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#EAB308', color: '#050914' }}>
                     <Star size={20} fill="currentColor" />
                   </Box>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 900, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 900, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                       Featured Promotion <Chip label="PAID AD" size="small" sx={{ height: 18, fontSize: '9px', fontWeight: 900, bgcolor: '#050914', color: 'white' }} />
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
@@ -471,10 +531,16 @@ export const CreatePromotion: React.FC<{
   };
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', py: 4 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 6 }}>
+    <Box sx={{ maxWidth: 800, mx: 'auto', py: { xs: 2, sm: 4 }, px: { xs: 2, sm: 0 }, width: '100%', minWidth: 0 }}>
+      <Stack 
+        direction={{ xs: 'column', sm: 'row' }} 
+        justifyContent="space-between" 
+        alignItems={{ xs: 'stretch', sm: 'center' }} 
+        spacing={{ xs: 2, sm: 0 }}
+        sx={{ mb: { xs: 4, sm: 6 } }}
+      >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
+          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: '-0.02em', fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
             {isEdit ? 'Edit' : 'Create'} <Box component="span" sx={{ color: '#EAB308' }}>Promotion</Box>
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
@@ -482,9 +548,19 @@ export const CreatePromotion: React.FC<{
           </Typography>
         </Box>
         <Button 
-          variant="text" 
+          variant="outlined"
           onClick={onCancel}
-          sx={{ fontWeight: 800, color: 'text.secondary', borderRadius: '12px' }}
+          sx={{ 
+            borderRadius: '12px', 
+            fontWeight: 900, 
+            fontSize: '12px', 
+            py: 1.5, 
+            minHeight: 44,
+            borderColor: 'divider', 
+            color: 'text.secondary', 
+            alignSelf: { xs: 'flex-end', sm: 'auto' },
+            '&:hover': { borderColor: 'text.primary', color: 'text.primary', bgcolor: 'action.hover' },
+          }}
         >
           CANCEL
         </Button>
@@ -509,7 +585,7 @@ export const CreatePromotion: React.FC<{
         activeStep={activeStep} 
         alternativeLabel 
         sx={{ 
-          mb: 8,
+          mb: { xs: 4, sm: 8 },
           '& .MuiStepIcon-root.Mui-active': { color: '#EAB308' },
           '& .MuiStepIcon-root.Mui-completed': { color: '#10B981' },
           '& .MuiStepLabel-label': { fontWeight: 700, fontSize: '12px' }
@@ -525,15 +601,16 @@ export const CreatePromotion: React.FC<{
       <Paper 
         elevation={0}
         sx={{ 
-          p: 5, 
-          borderRadius: '40px', 
+          p: { xs: 2, sm: 4, md: 5 }, 
+          borderRadius: { xs: '20px', sm: '32px', md: '40px' }, 
           border: '1.5px solid', 
           borderColor: 'divider',
           bgcolor: isDark ? '#0f172a' : 'white',
-          minHeight: 400,
+          minHeight: { xs: 320, sm: 400 },
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
+          overflow: 'hidden'
         }}
       >
         <Box>
@@ -550,37 +627,50 @@ export const CreatePromotion: React.FC<{
           </AnimatePresence>
         </Box>
 
-        <Stack direction="row" spacing={2} sx={{ mt: 6 }}>
+        <Stack 
+          direction={{ xs: 'column-reverse', sm: 'row' }} 
+          spacing={2} 
+          sx={{ mt: { xs: 4, sm: 6 } }}
+        >
           <Button
+            variant="outlined"
             disabled={activeStep === 0}
             onClick={handleBack}
             startIcon={<ChevronLeft size={18} />}
             sx={{ 
-              borderRadius: '16px', 
-              px: 4, 
+              borderRadius: '12px', 
+              px: { xs: 3, sm: 4 }, 
               py: 1.5, 
-              fontWeight: 800,
-              border: '1.5px solid',
-              borderColor: 'divider'
+              minHeight: 44,
+              fontWeight: 900,
+              fontSize: '12px',
+              borderWidth: '1.5px',
+              borderColor: 'divider',
+              color: 'text.secondary',
+              width: { xs: '100%', sm: 'auto' },
+              '&:hover': { borderColor: 'text.primary', color: 'text.primary', bgcolor: 'action.hover' },
+              '&.Mui-disabled': { borderColor: 'divider', color: 'text.disabled' },
             }}
           >
             BACK
           </Button>
-          <Box sx={{ flex: 1 }} />
+          <Box sx={{ flex: { xs: 'none', sm: 1 } }} />
           {activeStep === steps.length - 1 ? (
             <Button
               variant="contained"
+              color="secondary"
+              disableElevation
               onClick={handleSubmit}
               disabled={isSubmitting || loadingEdit}
               startIcon={<Check size={18} />}
               sx={{ 
-                borderRadius: '16px', 
-                px: 6, 
+                borderRadius: '12px', 
+                px: { xs: 4, sm: 6 }, 
                 py: 1.5, 
+                minHeight: 44,
                 fontWeight: 900,
-                bgcolor: '#EAB308',
-                color: '#050914',
-                '&:hover': { bgcolor: '#FACC15' }
+                fontSize: '12px',
+                width: { xs: '100%', sm: 'auto' },
               }}
             >
               {isSubmitting ? 'SAVING...' : isEdit ? 'UPDATE PROMOTION' : 'LAUNCH PROMOTION'}
@@ -588,16 +678,20 @@ export const CreatePromotion: React.FC<{
           ) : (
             <Button
               variant="contained"
+              disableElevation
               onClick={handleNext}
               endIcon={<ChevronRight size={18} />}
               sx={{ 
-                borderRadius: '16px', 
-                px: 6, 
+                borderRadius: '12px', 
+                px: { xs: 4, sm: 6 }, 
                 py: 1.5, 
+                minHeight: 44,
                 fontWeight: 900,
-                bgcolor: '#050914',
-                color: 'white',
-                '&:hover': { bgcolor: '#1e293b' }
+                fontSize: '12px',
+                bgcolor: 'text.primary',
+                color: 'background.paper',
+                width: { xs: '100%', sm: 'auto' },
+                '&:hover': { bgcolor: 'text.primary', opacity: 0.9 },
               }}
             >
               CONTINUE

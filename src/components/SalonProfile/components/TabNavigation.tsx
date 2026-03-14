@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Tabs, Tab } from '@mui/material';
-import { Sparkles, Users, MapPin, MessageSquare, Archive } from 'lucide-react';
+import { Sparkles, Users, MapPin, MessageSquare, Archive, Settings } from 'lucide-react';
 
 interface TabNavigationProps {
   activeTab: number;
@@ -14,6 +14,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, setActi
     { label: 'Branches', icon: MapPin },
     { label: 'Reviews', icon: MessageSquare },
     { label: 'Archive', icon: Archive },
+    { label: 'Settings', icon: Settings },
   ];
 
   return (

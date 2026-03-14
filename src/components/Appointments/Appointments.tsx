@@ -67,7 +67,9 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
     setTimeRange,
     viewDateStr,
     dayAppointments,
-    listFilteredAppointments,
+    listPast,
+    listToday,
+    listUpcoming,
     currentRitualCount,
     currentSalonId,
     services,
@@ -247,36 +249,38 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
             </Button>
           </Stack>
 
-          <ToggleButtonGroup
-            value={timeRange}
-            exclusive
-            onChange={(_, v) => v && setTimeRange(v)}
-            sx={{
-              height: 44,
-              border: '1px solid',
-              borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9',
-              borderRadius: '12px',
-              p: '4px',
-              bgcolor: isDark ? '#050914' : '#F8FAFC',
-              '& .MuiToggleButton-root': {
-                border: 'none',
-                borderRadius: '8px',
-                flexGrow: 1,
-                fontWeight: 900,
-                fontSize: '9px',
-                color: '#94A3B8',
-                '&.Mui-selected': {
-                  bgcolor: '#EAB308',
-                  color: isDark ? '#050914' : 'white',
-                  '&:hover': { bgcolor: '#EAB308' },
+          {viewType !== 'list' && (
+            <ToggleButtonGroup
+              value={timeRange}
+              exclusive
+              onChange={(_, v) => v && setTimeRange(v)}
+              sx={{
+                height: 44,
+                border: '1px solid',
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9',
+                borderRadius: '12px',
+                p: '4px',
+                bgcolor: isDark ? '#050914' : '#F8FAFC',
+                '& .MuiToggleButton-root': {
+                  border: 'none',
+                  borderRadius: '8px',
+                  flexGrow: 1,
+                  fontWeight: 900,
+                  fontSize: '9px',
+                  color: '#94A3B8',
+                  '&.Mui-selected': {
+                    bgcolor: '#EAB308',
+                    color: isDark ? '#050914' : 'white',
+                    '&:hover': { bgcolor: '#EAB308' },
+                  },
                 },
-              },
-            }}
-          >
-            <ToggleButton value="past">Past</ToggleButton>
-            <ToggleButton value="today">Today</ToggleButton>
-            <ToggleButton value="upcoming">Upcoming</ToggleButton>
-          </ToggleButtonGroup>
+              }}
+            >
+              <ToggleButton value="past">Past</ToggleButton>
+              <ToggleButton value="today">Today</ToggleButton>
+              <ToggleButton value="upcoming">Upcoming</ToggleButton>
+            </ToggleButtonGroup>
+          )}
         </Stack>
 
         <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
@@ -387,7 +391,9 @@ const Appointments: React.FC<AppointmentsProps> = (props) => {
             )}
             {viewType === 'list' && (
               <ListView
-                listFilteredAppointments={listFilteredAppointments}
+                listPast={listPast}
+                listToday={listToday}
+                listUpcoming={listUpcoming}
                 setSelectedApt={setSelectedApt}
                 setDetailOpen={setDetailOpen}
                 isFocusMode={action.isFocusMode}

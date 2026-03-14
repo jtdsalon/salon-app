@@ -198,7 +198,7 @@ export const handleSaveStaff = (
     modalState: any
 ) => {
     // Transform form data to match API requirements
-    const staffPayload = {
+    const staffPayload: Record<string, any> = {
         salon_id: salonId,
         job_title: staffFormData.role || '',
         display_name: staffFormData.name || '',
@@ -213,6 +213,9 @@ export const handleSaveStaff = (
         commission_rate: staffFormData.commissionRate || 0,
         is_active: staffFormData.status === 'active' || staffFormData.status === 'on-leave',
     };
+    if (Array.isArray((staffFormData as any).service_ids)) {
+        staffPayload.service_ids = (staffFormData as any).service_ids;
+    }
 
     if (editingStaff) {
         // Update existing staff

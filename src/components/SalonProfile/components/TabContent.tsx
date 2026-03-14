@@ -5,6 +5,7 @@ import { RitualMenuTab } from './Tabs/RitualMenuTab';
 import { ArtisansTab } from './Tabs/ArtisansTab';
 import { BranchesTab } from './Tabs/BranchesTab';
 import { ReviewsTab } from './Tabs/ReviewsTab';
+import { SettingsTab } from './Tabs/SettingsTab';
 
 interface TabContentProps {
   activeTab: number;
@@ -127,6 +128,13 @@ export const TabContent: React.FC<TabContentProps> = ({
             <Box sx={{ py: 4, textAlign: 'center' }}>
               <p>Archive section coming soon</p>
             </Box>
+          )}
+
+          {activeTab === 5 && (
+            <SettingsTab
+              salonId={salonId}
+              theme={theme}
+            />
           )}
         </Box>
       </Fade>

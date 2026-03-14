@@ -563,7 +563,7 @@ export const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> =
   <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: '32px', p: 1, maxWidth: { xs: 'calc(100vw - 32px)', sm: 320 }, width: { xs: '100%', sm: 'auto' } } }}>
     <DialogTitle sx={{ textAlign: 'center' }}>
       <Box sx={{ color: '#ef4444', mb: 1 }}><AlertTriangle size={48} style={{ margin: '0 auto' }} /></Box>
-      <Typography variant="h6" sx={{ fontWeight: 900 }}>{title}</Typography>
+      <Typography component="span" variant="h6" sx={{ fontWeight: 900 }}>{title}</Typography>
     </DialogTitle>
     <DialogContent>
       <Typography variant="body2" color="text.secondary" align="center">{message}</Typography>

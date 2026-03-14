@@ -277,22 +277,6 @@ const TopNavbar: React.FC = () => {
       {isMobile && <Box sx={{ flex: 1 }} />}
 
       <Stack direction="row" spacing={{ xs: 0.5, md: 1 }} alignItems="center">
-        {!isMobile && (
-          <Tooltip title="Staff Portal">
-            <IconButton
-              onClick={() => handleNav(AppView.STAFF_PORTAL)}
-              sx={{
-                width: 40,
-                height: 40,
-                border: `1px solid ${theme.palette.divider}`,
-                color: isStaffPortalView ? '#EAB308' : theme.palette.text.secondary,
-              }}
-            >
-              <Briefcase size={18} />
-            </IconButton>
-          </Tooltip>
-        )}
-
         <Badge badgeContent={unreadCount > 0 ? unreadCount : undefined} color="error" overlap="circular">
           <IconButton
             onClick={handleOpenNotifications}

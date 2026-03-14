@@ -73,7 +73,7 @@ export const PromotionDashboard: React.FC = () => {
   if (showCreateOrEdit && salonId) {
     return (
       <Fade in={true}>
-        <Box>
+        <Box sx={{ width: '100%', minWidth: 0, overflowX: 'hidden' }}>
           <CreatePromotion
             salonId={salonId}
             editPromotionId={editingId ?? undefined}
@@ -125,29 +125,35 @@ export const PromotionDashboard: React.FC = () => {
             startIcon={<RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />}
             onClick={handleRefresh}
             sx={{
-              borderRadius: '14px',
-              fontWeight: 800,
+              borderRadius: '12px',
+              fontWeight: 900,
               px: { xs: 2, sm: 3 },
+              py: 1.5,
+              minHeight: 44,
               border: '1.5px solid',
               borderColor: 'divider',
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              fontSize: '12px',
+              color: 'text.secondary',
+              '&:hover': { borderColor: 'text.primary', color: 'text.primary', bgcolor: 'action.hover' },
             }}
           >
             REFRESH
           </Button>
           <Button
             variant="contained"
+            disableElevation
             startIcon={<Plus size={18} />}
             onClick={handleStartCreating}
             sx={{
-              borderRadius: '14px',
+              borderRadius: '12px',
               fontWeight: 900,
               px: { xs: 2, sm: 4 },
-              py: { xs: 1, sm: 1.5 },
-              bgcolor: '#050914',
-              color: 'white',
-              '&:hover': { bgcolor: '#1e293b' },
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              py: 1.5,
+              minHeight: 44,
+              bgcolor: 'text.primary',
+              color: 'background.paper',
+              fontSize: '12px',
+              '&:hover': { bgcolor: 'text.primary', opacity: 0.9 },
             }}
           >
             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>CREATE PROMOTION</Box>
@@ -279,8 +285,8 @@ export const PromotionDashboard: React.FC = () => {
           <Typography>Are you sure you want to delete this promotion? This action cannot be undone.</Typography>
         </DialogContent>
         <DialogActions sx={{ px: 2, pb: 2 }}>
-          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleConfirmDelete}>Delete</Button>
+          <Button variant="outlined" onClick={handleCloseDeleteDialog} sx={{ borderRadius: '12px', fontWeight: 900, fontSize: '12px', py: 1.5, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'text.primary', color: 'text.primary', bgcolor: 'action.hover' } }}>Cancel</Button>
+          <Button color="error" variant="contained" disableElevation onClick={handleConfirmDelete} sx={{ borderRadius: '12px', fontWeight: 900, fontSize: '12px', py: 1.5, minHeight: 44 }}>Delete</Button>
         </DialogActions>
       </Dialog>
 
@@ -325,9 +331,9 @@ export const PromotionDashboard: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 2, pb: 2, flexWrap: 'wrap', gap: 1 }}>
-          <Button onClick={handleCloseViewDetails}>Close</Button>
+          <Button variant="outlined" onClick={handleCloseViewDetails} sx={{ borderRadius: '12px', fontWeight: 900, fontSize: '12px', py: 1.5, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'text.primary', color: 'text.primary', bgcolor: 'action.hover' } }}>Close</Button>
           {viewDetailsPromo && (
-            <Button variant="contained" onClick={() => { handleEdit(viewDetailsPromo); handleCloseViewDetails(); }} sx={{ bgcolor: '#050914' }}>
+            <Button variant="contained" disableElevation onClick={() => { handleEdit(viewDetailsPromo); handleCloseViewDetails(); }} sx={{ borderRadius: '12px', fontWeight: 900, fontSize: '12px', py: 1.5, minHeight: 44, bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'text.primary', opacity: 0.9 } }}>
               Edit
             </Button>
           )}
@@ -356,7 +362,7 @@ const EmptyState: React.FC<{ onAction: () => void }> = ({ onAction }) => (
     <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto', fontWeight: 600, px: 1 }}>
       You haven't created any promotions matching your search criteria. Start a new campaign to boost your sales.
     </Typography>
-    <Button variant="contained" onClick={onAction} sx={{ borderRadius: '12px', fontWeight: 900, px: 3, py: 1.5, bgcolor: '#050914', color: 'white', fontSize: { xs: '0.8rem', md: '0.875rem' } }}>
+    <Button variant="contained" disableElevation onClick={onAction} sx={{ borderRadius: '12px', fontWeight: 900, px: 3, py: 1.5, minHeight: 44, bgcolor: 'text.primary', color: 'background.paper', fontSize: '12px', '&:hover': { bgcolor: 'text.primary', opacity: 0.9 } }}>
       CREATE YOUR FIRST OFFER
     </Button>
   </Paper>
