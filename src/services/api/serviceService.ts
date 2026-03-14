@@ -16,6 +16,7 @@ export interface Service {
   description?: string
   price: number
   duration_minutes: number
+  buffer_minutes?: number
   images?: string[]
   is_active?: boolean
   popularity?: number
@@ -50,7 +51,7 @@ export function createServiceApi(serviceData: Partial<Service>): Promise<AxiosRe
       if (img instanceof File) fileImages.push(img);
       else if (typeof img === 'string') existingUrls.push(img);
     });
-    ['salon_id', 'name', 'category', 'price', 'duration', 'duration_minutes', 'description', 'is_active'].forEach((key) => {
+    ['salon_id', 'name', 'category', 'price', 'duration', 'duration_minutes', 'buffer_minutes', 'description', 'is_active'].forEach((key) => {
       const val = (serviceData as any)[key];
       if (val != null && val !== '') formData.append(key, String(val));
     });

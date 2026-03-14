@@ -20,6 +20,8 @@ export const PROMOTION_TYPES = [
   'Featured Promotion',
 ] as const;
 
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+
 export const INITIAL_FORM_DATA = {
   title: '',
   description: '',
@@ -28,6 +30,9 @@ export const INITIAL_FORM_DATA = {
   discountType: 'percentage' as const,
   discountValue: '',
   selectedServiceIds: [] as string[],
+  selectedCategories: [] as string[],
+  minBookingValue: '',
+  eligibleDays: [] as number[],
   startDate: '',
   endDate: '',
   isHappyHour: false,
@@ -72,7 +77,7 @@ export function useCreatePromotionForm({ salonId, editPromotionId, duplicateFrom
   const loadFromId = editPromotionId || duplicateFromId;
 
   const [activeStep, setActiveStep] = useState(0);
-  const [services, setServices] = useState<Array<{ id: string; name: string }>>([]);
+  const [services, setServices] = useState<Array<{ id: string; name: string; category?: string }>>([]);
   const [loadingEdit, setLoadingEdit] = useState(!!loadFromId);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -84,7 +89,11 @@ export function useCreatePromotionForm({ salonId, editPromotionId, duplicateFrom
       .then((res) => {
         const arr = res?.data?.data ?? res?.data ?? [];
         setServices(
-          Array.isArray(arr) ? arr.map((s: { id: string; name?: string; serviceName?: string }) => ({ id: s.id, name: s.name || s.serviceName || '' })) : []
+          Array.isArray(arr) ? arr.map((s: { id: string; name?: string; serviceName?: string; category?: string }) => ({
+            id: s.id,
+            name: s.name || s.serviceName || '',
+            category: s.category || 'General',
+          })) : []
         );
       })
       .catch(() => setServices([]));
@@ -102,6 +111,14 @@ export function useCreatePromotionForm({ salonId, editPromotionId, duplicateFrom
         const discountVal = discountType === 'percentage'
           ? (p.discount_percent ?? p.discount_value)
           : p.discount_value;
+        const eligibleDaysRaw = (p as any).eligible_days;
+        const eligibleDays: number[] = Array.isArray(eligibleDaysRaw)
+          ? eligibleDaysRaw.map((d: number | string) => {
+              if (typeof d === 'number' && d >= 0 && d <= 6) return d;
+              const idx = DAY_LABELS.indexOf(String(d) as any);
+              return idx >= 0 ? idx : 0;
+            }).filter((d, i, arr) => arr.indexOf(d) === i)
+          : [];
         setFormData({
           title: p.title || '',
           description: p.description || '',
@@ -110,6 +127,9 @@ export function useCreatePromotionForm({ salonId, editPromotionId, duplicateFrom
           discountType,
           discountValue: discountVal != null ? String(discountVal) : '',
           selectedServiceIds: (p.promotion_services || []).map((ps: any) => ps.service_id || ps.service?.id).filter(Boolean),
+          selectedCategories: ((p as any).promotion_categories || []).map((pc: any) => pc.category || '').filter(Boolean),
+          minBookingValue: (p as any).min_booking_value != null ? String((p as any).min_booking_value) : '',
+          eligibleDays,
           startDate: p.start_date ? String(p.start_date).slice(0, 10) : '',
           endDate: p.end_date ? String(p.end_date).slice(0, 10) : '',
           isHappyHour: !!(sched.startTime || sched.endTime),
@@ -186,9 +206,11 @@ export function useCreatePromotionForm({ salonId, editPromotionId, duplicateFrom
 
       // Step 2: Service Selection
       if (step === 2) {
-        const needsServices = ['Service Discount', 'Bundle Package'].includes(formData.type);
-        if (needsServices && (!formData.selectedServiceIds || formData.selectedServiceIds.length === 0)) {
-          errs.selectedServiceIds = 'Select at least one service for this promotion type';
+        const needsTargeting = ['Service Discount', 'Bundle Package'].includes(formData.type);
+        const hasServices = (formData.selectedServiceIds?.length ?? 0) > 0;
+        const hasCategories = (formData.selectedCategories?.length ?? 0) > 0;
+        if (needsTargeting && !hasServices && !hasCategories) {
+          errs.selectedServiceIds = 'Select at least one service or category for this promotion type';
         }
       }
 
@@ -261,6 +283,9 @@ export function useCreatePromotionForm({ salonId, editPromotionId, duplicateFrom
       is_featured: formData.isFeatured,
       priority: formData.priority ? parseInt(String(formData.priority), 10) : 0,
       serviceIds: formData.selectedServiceIds,
+      categories: formData.selectedCategories?.length ? formData.selectedCategories : undefined,
+      min_booking_value: formData.minBookingValue ? parseFloat(String(formData.minBookingValue)) : undefined,
+      eligible_days: formData.eligibleDays?.length ? formData.eligibleDays.map((d) => DAY_LABELS[d]) : undefined,
     };
     if (formData.type === 'Bundle Package' && formData.bundlePrice) {
       payload.bundle_price = parseFloat(String(formData.bundlePrice));

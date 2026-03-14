@@ -390,6 +390,8 @@ const SalonProfile: React.FC<SalonProfileProps> = ({ salonId, onBack, openSalonE
         error={staffError}
         success={staffSuccess}
         successMessage={staffSuccessMessage}
+        salonId={salonId ?? undefined}
+        serviceList={serviceList}
       />
     </Box>
   );

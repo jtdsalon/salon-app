@@ -57,6 +57,9 @@ export interface CreatePromotionPayload {
   is_featured?: boolean;
   priority?: number;
   serviceIds?: string[];
+  min_booking_value?: number | null;
+  eligible_days?: string[];
+  categories?: string[];
 }
 
 const PROMOTION_TYPE_MAP: Record<string, string> = {

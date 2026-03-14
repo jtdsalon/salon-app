@@ -5,6 +5,8 @@ import {
   GET_STAFF_URL,
   GET_STAFF_BY_ID_URL,
   GET_STAFF_STATS_URL,
+  GET_STAFF_SCHEDULES_URL,
+  UPDATE_STAFF_SCHEDULES_URL,
   CREATE_STAFF_URL,
   UPDATE_STAFF_URL,
   DELETE_STAFF_URL,
@@ -79,5 +81,32 @@ export function deleteStaffApi(staffId: string): Promise<AxiosResponse<any>> {
   return networkClient().request({
     method: HTTP_METHOD.DELETE,
     url: DELETE_STAFF_URL.replace('{id}', staffId),
+  })
+}
+
+export interface StaffScheduleItem {
+  id?: string
+  staff_id?: string
+  day_of_week: number
+  day_name?: string
+  start_time: string
+  end_time: string
+}
+
+export function getStaffSchedulesApi(staffId: string): Promise<AxiosResponse<{ data: { schedules: StaffScheduleItem[] }; schedules?: StaffScheduleItem[] }>> {
+  return networkClient().request({
+    method: HTTP_METHOD.GET,
+    url: GET_STAFF_SCHEDULES_URL.replace('{id}', staffId),
+  })
+}
+
+export function updateStaffSchedulesApi(
+  staffId: string,
+  schedules: Array<{ day_of_week: number; start_time: string; end_time: string }>
+): Promise<AxiosResponse<{ data: { schedules: StaffScheduleItem[] }; schedules?: StaffScheduleItem[] }>> {
+  return networkClient().request({
+    method: HTTP_METHOD.PUT,
+    url: UPDATE_STAFF_SCHEDULES_URL.replace('{id}', staffId),
+    data: { schedules },
   })
 }
