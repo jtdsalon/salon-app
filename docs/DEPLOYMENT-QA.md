@@ -100,11 +100,52 @@ pm2 save
 | Full update (pull + build + deploy) | `cd ~/salon-app && git pull && npm install && npm run build:qa && sudo cp -r dist/* /var/www/salon-app/` |
 | Preview built app locally | `npm run preview` (after build) |
 
-**If latest changes don’t show:** Nginx serves from `/var/www/salon-app/`, not from `dist/`. After every `npm run build:qa` you must run `sudo cp -r dist/* /var/www/salon-app/`. Then hard-refresh the browser (Ctrl+Shift+R) or use a private window to avoid cache.
+**If latest changes don’t show:** See [§5. Troubleshooting](#5-troubleshooting-cant-see-latest-changes) — usually run `sudo cp -r dist/* /var/www/salon-app/` after build, then hard-refresh (Ctrl+Shift+R) or incognito.
 
 ---
 
-## 5. Env files summary
+## 5. Troubleshooting: Can't see latest changes
+
+If the QA site still shows old content after you deployed:
+
+**1. Copy the build to where nginx serves from**
+
+Nginx serves from **`/var/www/salon-app/`**, not from the project's `dist/` folder. Running only `npm run build:qa` updates `dist/` but not the live folder. You must copy after every build:
+
+```bash
+cd ~/salon-app
+sudo cp -r dist/* /var/www/salon-app/
+```
+
+**2. Bypass browser cache**
+
+The browser may be serving a cached bundle. Do one of:
+
+- **Hard refresh:** `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+- Open the app in an **incognito/private** window
+
+**3. Confirm what's deployed**
+
+On the server, check that the live folder is newer than or equal to your build:
+
+```bash
+ls -la /var/www/salon-app/    # when were live files last updated?
+ls -la ~/salon-app/dist/      # when was your last build?
+```
+
+If `dist/` is newer than `/var/www/salon-app/`, run the copy step again, then hard-refresh the browser.
+
+**Quick fix (build + deploy in one go):**
+
+```bash
+cd ~/salon-app && npm run build:qa && sudo cp -r dist/* /var/www/salon-app/
+```
+
+Then hard-refresh or use incognito.
+
+---
+
+## 6. Env files summary
 
 | File | When used |
 |------|-----------|
@@ -113,3 +154,5 @@ pm2 save
 | `.env.production` | When running with `--mode production` |
 
 Ensure **`VITE_APP_BASE_URL`** in `.env.qa` points to your QA API (e.g. `http://129.212.226.33/api`).
+
+**Realtime notifications:** For live notifications to work on the server, nginx must proxy `/socket.io/` to the backend with WebSocket upgrade (see `docs/nginx-salon-qa.example.conf`), and the backend `.env.qa` must set `CORS_ORIGIN=http://129.212.226.33` (see salon-backed docs).
