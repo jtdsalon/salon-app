@@ -1,0 +1,158 @@
+# Salon App – Run & set up on QA
+
+Steps to run and set up the salon-app on the QA server (`root@QA:~/salon-app`).
+
+---
+
+## 1. Set environment (QA)
+
+The app uses **Vite modes**. For QA, the mode is `qa`, which loads **`.env.qa`**.
+
+- On the QA server, ensure **`.env.qa`** exists in the salon-app directory and has the QA API base URL:
+  ```bash
+  # .env.qa (in ~/salon-app/)
+  VITE_APP_BASE_URL=http://129.212.226.33/api
+  ```
+- Replace `http://129.212.226.33` with your QA server host if different.
+- **Important:** If this is missing or wrong when you run `npm run build:qa`, the built app may call `http://localhost:3000/api` instead of your QA API. The app will try to fix this at runtime when opened from the QA host, but for correct builds always set `VITE_APP_BASE_URL` in `.env.qa` before building.
+
+---
+
+## 2. Install dependencies (one-time)
+
+```bash
+cd ~/salon-app
+npm install
+```
+
+---
+
+## 3. Run on QA
+
+You can either run the **dev server** (for quick testing) or **build and serve** static files (recommended for a stable QA deployment).
+
+### Option A: Dev server (quick test)
+
+```bash
+cd ~/salon-app
+npm run qa
+```
+
+- Runs Vite with `--mode qa` (loads `.env.qa`).
+- App is at `http://<QA_HOST>:5173` (or the host Vite prints).
+- Stop with `Ctrl+C`. For long-running, use Option B or run under PM2 (see below).
+
+### Option B: Build and deploy for nginx (recommended for QA)
+
+Nginx serves the salon app from **`/var/www/salon-app/`**. After you build, you must **copy the built files** there or nginx will keep serving the old version.
+
+**1. Build for QA**
+
+```bash
+cd ~/salon-app
+git pull
+npm install
+npm run build:qa
+```
+
+- Output is in **`dist/`** (e.g. `dist/index.html`, `dist/assets/`).
+
+**2. Deploy the built files to where nginx serves from**
+
+```bash
+# Create target dir if needed, then copy dist contents into it
+sudo mkdir -p /var/www/salon-app
+sudo cp -r dist/* /var/www/salon-app/
+```
+
+- Nginx is configured with `location /salon-app/` and `root /var/www`, so it serves files from `/var/www/salon-app/`. Updating this folder is what makes your latest build visible at `http://<QA_HOST>/salon-app/`.
+
+**3. Avoid browser cache when testing**
+
+- Hard refresh: Ctrl+Shift+R (or Cmd+Shift+R on Mac), or open the app in an incognito/private window, so you see the new bundle instead of a cached one.
+
+**One-liner after pull (build + deploy):**
+
+```bash
+cd ~/salon-app && git pull && npm install && npm run build:qa && sudo cp -r dist/* /var/www/salon-app/
+```
+
+**Or run the dev server under PM2 (for a persistent QA instance):**
+
+```bash
+cd ~/salon-app
+pm2 start npm --name "salon-app-qa" -- run qa
+pm2 save
+```
+
+- Uses `npm run qa` (Vite dev server with `--mode qa`). App will be on the port Vite shows (e.g. 5173). Expose it via nginx or firewall as needed.
+
+---
+
+## 4. Quick reference
+
+| Task | Command |
+|------|--------|
+| Install deps | `npm install` |
+| Run dev server (QA mode) | `npm run qa` |
+| Build for QA | `npm run build:qa` |
+| **Deploy build to nginx** | `sudo cp -r dist/* /var/www/salon-app/` (after build) |
+| Full update (pull + build + deploy) | `cd ~/salon-app && git pull && npm install && npm run build:qa && sudo cp -r dist/* /var/www/salon-app/` |
+| Preview built app locally | `npm run preview` (after build) |
+
+**If latest changes don’t show:** See [§5. Troubleshooting](#5-troubleshooting-cant-see-latest-changes) — usually run `sudo cp -r dist/* /var/www/salon-app/` after build, then hard-refresh (Ctrl+Shift+R) or incognito.
+
+---
+
+## 5. Troubleshooting: Can't see latest changes
+
+If the QA site still shows old content after you deployed:
+
+**1. Copy the build to where nginx serves from**
+
+Nginx serves from **`/var/www/salon-app/`**, not from the project's `dist/` folder. Running only `npm run build:qa` updates `dist/` but not the live folder. You must copy after every build:
+
+```bash
+cd ~/salon-app
+sudo cp -r dist/* /var/www/salon-app/
+```
+
+**2. Bypass browser cache**
+
+The browser may be serving a cached bundle. Do one of:
+
+- **Hard refresh:** `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+- Open the app in an **incognito/private** window
+
+**3. Confirm what's deployed**
+
+On the server, check that the live folder is newer than or equal to your build:
+
+```bash
+ls -la /var/www/salon-app/    # when were live files last updated?
+ls -la ~/salon-app/dist/      # when was your last build?
+```
+
+If `dist/` is newer than `/var/www/salon-app/`, run the copy step again, then hard-refresh the browser.
+
+**Quick fix (build + deploy in one go):**
+
+```bash
+cd ~/salon-app && npm run build:qa && sudo cp -r dist/* /var/www/salon-app/
+```
+
+Then hard-refresh or use incognito.
+
+---
+
+## 6. Env files summary
+
+| File | When used |
+|------|-----------|
+| `.env` | Base; loaded in all modes |
+| `.env.qa` | When running with `--mode qa` (`npm run qa`, `npm run build:qa`) |
+| `.env.production` | When running with `--mode production` |
+
+Ensure **`VITE_APP_BASE_URL`** in `.env.qa` points to your QA API (e.g. `http://129.212.226.33/api`).
+
+**Realtime notifications:** For live notifications to work on the server, nginx must proxy `/socket.io/` to the backend with WebSocket upgrade (see `docs/nginx-salon-qa.example.conf`), and the backend `.env.qa` must set `CORS_ORIGIN=http://129.212.226.33` (see salon-backed docs).

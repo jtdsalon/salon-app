@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+build/
+
+# Environment (secrets - never commit; keep .env.example as template)
+.env
+.env.*
+!.env.example
+
+# Test coverage
+coverage/
+
+# OS / editor
+.DS_Store
+*.log
+.idea/
+.vscode/
+
+# Vite
+.vite/
