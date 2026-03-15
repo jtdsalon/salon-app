@@ -399,11 +399,11 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
                 fullWidth
                 label={<>Price (LKR) <RequiredIndicator /></>}
                 type="number"
-                value={serviceFormData.price ?? ''}
+                value={serviceFormData.price === 0 || serviceFormData.price === undefined || serviceFormData.price === null ? '' : serviceFormData.price}
                 onChange={(e) => {
                 const raw = e.target.value;
                 if (raw === '') {
-                  handleFieldChange('price', undefined);
+                  handleFieldChange('price', 0);
                 } else {
                   const num = Number(raw);
                   handleFieldChange('price', Number.isNaN(num) ? undefined : Math.max(0, num));
@@ -460,10 +460,10 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
                 fullWidth
                 label="Buffer time (min)"
                 type="number"
-                value={serviceFormData.buffer_minutes ?? ''}
+                value={serviceFormData.buffer_minutes === 0 || serviceFormData.buffer_minutes === undefined || serviceFormData.buffer_minutes === null ? '' : serviceFormData.buffer_minutes}
                 onChange={(e) => {
                   const raw = e.target.value;
-                  if (raw === '') handleFieldChange('buffer_minutes', undefined);
+                  if (raw === '') handleFieldChange('buffer_minutes', 0);
                   else {
                     const num = Number(raw);
                     handleFieldChange('buffer_minutes', Number.isNaN(num) ? undefined : Math.max(0, num));

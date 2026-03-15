@@ -108,6 +108,7 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
 }) => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [options, setOptions] = useState<CompletionOptions>({
     print: true,
     email: true,
@@ -169,7 +170,9 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
     }
   };
 
-  const isAlreadyCompleted = selectedApt?.status === 'completed';
+  const statusUpper = selectedApt?.status?.toUpperCase();
+  const isAlreadyCompleted = statusUpper === 'COMPLETED';
+  const canCancelAppointment = statusUpper !== 'COMPLETED' && statusUpper !== 'CANCELLED';
   const styleImageUrls = selectedApt?.styleImageUrls?.filter(Boolean) ?? [];
 
   return (
@@ -362,7 +365,9 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
                <Button fullWidth variant="outlined" disabled={isSubmitting} onClick={() => onEdit(selectedApt!)} sx={{ borderRadius: '12px', fontWeight: 900, py: 1.5, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'divider' }}>Edit appointment</Button>
              )}
              <Button fullWidth variant="text" disabled={isSubmitting} startIcon={isSubmitting ? <CircularProgress size={18} /> : <ArrowLeft size={18} />} onClick={onBackToList} sx={{ borderRadius: '12px', fontWeight: 900, color: '#94A3B8' }}>Back to list</Button>
-             <Button fullWidth variant="text" disabled={isSubmitting} color="error" onClick={() => onArchive(selectedApt!.id)} sx={{ borderRadius: '12px', fontWeight: 900 }}>Cancel appointment</Button>
+             {canCancelAppointment && (
+               <Button fullWidth variant="text" disabled={isSubmitting} color="error" onClick={() => setCancelConfirmOpen(true)} sx={{ borderRadius: '12px', fontWeight: 900 }}>Cancel appointment</Button>
+             )}
            </>
          )}
          
@@ -370,6 +375,47 @@ const AppointmentDetail: React.FC<AppointmentDetailProps> = ({
            <Button fullWidth variant="text" disabled={isSubmitting} onClick={() => setIsCompleting(false)} sx={{ fontWeight: 900, color: '#94A3B8' }}>Cancel</Button>
          )}
       </DialogActions>
+
+      <Dialog
+        open={cancelConfirmOpen}
+        onClose={() => !isSubmitting && setCancelConfirmOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: isMobile ? 0 : '24px', p: 2, bgcolor: isDark ? '#0B1224' : 'white' } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, fontSize: '1.1rem' }}>
+          Cancel appointment?
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: isDark ? '#94A3B8' : '#64748B' }}>
+            Are you sure you want to cancel this appointment for {selectedApt?.customerName}? This cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ flexDirection: 'column', gap: 1, px: 2, pb: 2 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            disabled={isSubmitting}
+            onClick={() => {
+              if (selectedApt) onArchive(selectedApt.id);
+              setCancelConfirmOpen(false);
+            }}
+            color="error"
+            sx={{ borderRadius: '12px', fontWeight: 900, py: 1.2 }}
+          >
+            {isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Yes, cancel appointment'}
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            disabled={isSubmitting}
+            onClick={() => setCancelConfirmOpen(false)}
+            sx={{ borderRadius: '12px', fontWeight: 900, py: 1.2, borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'divider' }}
+          >
+            Back
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={!!previewImageUrl}
